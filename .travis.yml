@@ -2,14 +2,14 @@
 language: java
 jdk:
   - openjdk8
-
 jobs:
   include:
     - stage: test
-      script: ./build.sh
+      script: "./build.sh"
     - stage: deploy
-      script: ./build.sh
-
+      script: "./deploy.sh"
+env:
+  - TROXY_DOCKER_IMAGE=docker.io/sparebank1/troxy
 branches:
   only:
     - master

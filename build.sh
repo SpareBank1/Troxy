@@ -1,5 +1,4 @@
 #!/bin/sh
-# Temporary NO-OP build script
 
-echo 'Build successful'
+docker build -t "$TROXY_DOCKER_IMAGE:$VERSION" .
 

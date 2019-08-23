@@ -2,7 +2,7 @@
 
 VERSION=${VERSION:-'local'}
 
-./mvnw install -Drevision="$VERSION"
+./mvnw deploy -s settings.xml -Drevision="$VERSION"
 
 docker build -t "$TROXY_DOCKER_IMAGE:$VERSION" .
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <RollingFile name="Server" fileName="logs/troxy/troxy.log"
+                     filePattern="logs/troxy/troxy.log.%d{yyyy-MM-dd}T%d{HH-mm}.gz">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd}T%d{HH:mm:ss.SSS} %-5level [%-7.7thread] [%-25.25logger{36}] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1440" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="1000 MB"/>
+            </Policies>
+        </RollingFile>
+        <RollingFile name="Simulator" fileName="logs/troxy/simulator.log"
+                     filePattern="logs/troxy/simulator.log.%d{yyyy-MM-dd}T%d{HH-mm}.gz">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd}T%d{HH:mm:ss.SSS} [%-5level] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="50 MB"/>
+            </Policies>
+        </RollingFile>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd}T%d{HH:mm:ss.SSS} %-5level [%-7.7thread] [%-25.25logger{36}] %m%n</Pattern>
+            </PatternLayout>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="Server"/>
+            <AppenderRef ref="Console"/>
+        </Root>
+        <Logger name="simulator" level="info" additivity="false">
+            <AppenderRef ref="Simulator"/>
+        </Logger>
+    </Loggers>
+</Configuration>

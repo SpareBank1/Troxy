@@ -1,0 +1,43 @@
+<div class="mal pal text-box">
+  <img id="status-image" src="/views/status/images/status_UNKNOWN.png"/>
+
+  <form id="status-form">
+    <table>
+      <tr>
+        <td>Modus:</td>
+        <td>
+          <select id="troxy-mode-dropdown" title="Modus">
+            <option value="PLAYBACK">Avspilling</option>
+            <option value="RECORD">Opptak</option>
+            <option value="PLAYBACK_OR_RECORD">Avspilling eller opptak</option>
+            <option value="PASSTHROUGH">Videresending</option>
+            <option value="PLAYBACK_OR_PASSTHROUGH">Avspilling eller videresending</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>Statistikk:</td>
+        <td>
+          <select id="statistics-interval-dropdown" title="Statistikk">
+            <option value="0">Avslått</option>
+            <option value="1">hvert minutt</option>
+            <option value="5">hvert 5. minutt</option>
+            <option value="10">hvert 10. minutt</option>
+            <option value="15">hvert 15. minutt</option>
+            <option value="30">hvert 30. minutt</option>
+            <option value="60">hver time</option>
+            <option value="1440">hver dag</option>
+          </select>
+        </td>
+      </tr>
+    </table>
+
+    <p id="troxy-version-info"></p>
+
+    <div id="last-activity">
+      Disse andre klientene har brukt denne websiden det siste døgnet:
+      <ul id="last-activity-list" style="list-style: circle;">
+      </ul>
+    </div>
+  </form>
+</div>

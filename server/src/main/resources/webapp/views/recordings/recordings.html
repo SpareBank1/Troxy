@@ -1,0 +1,189 @@
+<div id="load-files-container">
+  <div class="tool-bar" id="browse-toolbar">
+    <div class="button-group">
+      <a id="action-activate" class="button activate" title="Marker en eller flere filer/kataloger og trykk her for å aktivere i Troxy">&nbsp;</a>
+      <a id="action-deactivate" class="button deactivate" title="Marker en eller flere filer/kataloger og trykk her for å deaktivere i Troxy">&nbsp;</a>
+      <a id="action-refresh" class="button refresh" title="Oppdater filkatalog">&nbsp;</a>
+      <a id="action-rename" class="button rename disabled" title="Marker en fil/katalog og klikk her for å endre navn">&nbsp;</a>
+      <a id="action-copy" class="button copy disabled" title="Marker en fil og klikk her for å lage en kopi">&nbsp;</a>
+      <a id="action-new-folder" class="button new-folder disabled" title="Klikk for å lage en ny fil/kataloge">&nbsp;</a>
+      <a id="action-delete" class="button delete disabled" title="Marker en eller flere filer/kataloger og klikk her for å slette">&nbsp;</a>
+      <a id="action-download" class="button download disabled" title="Marker en eller flere filer/kataloger og klikk her for å laste ned">&nbsp;</a>
+      <a id="action-upload" class="button upload disabled" title="Klikk her for å laste opp opptak til angitt katalog">&nbsp;</a>
+      <!-- need this to download files from the server -->
+      <form id="download-form" style="display: none;" action="/api/download" method="POST"></form>
+    </div>
+  </div>
+  <div id="recording-message-pane"></div>
+
+  <div id="recording-tree-container" tabindex="-1"></div>
+</div>
+
+<div id="drag-handle">
+  <div id="drag-handle-ghost-image-hider" style="width: 100%; height: 100%;" draggable="true"></div>
+</div>
+
+<div id="edit-recordings-container">
+  <div class="tab-bar">
+    <div class="recording-tab tab selected" id="current-tab">
+      Gjeldende versjon
+    </div>
+    <div class="recording-tab tab" id="original-tab">
+      Originalopptak
+    </div>
+  </div>
+
+  <div class="tab-content">
+    <div class="button-bar separator">
+      <div class="button-group">
+        <div id="request-tab" class="recording-tab-button tab-button selected" tabindex="-1">
+          Request
+          <div id="slow-pattern-warning-indicator" class="pattern-info slow-pattern" style="display: none;">!</div>
+        </div>
+        <div class="recording-tab-button tab-button response-tab" tabindex="0">
+          Response 1
+        </div>
+      </div>
+
+      <div class="button-group right" id="recording-action-buttons">
+        <a id="delete-response-button" class="button delete" title="Klikk for å slette response">Slett response</a>
+        <a id="save-recording-button" class="button save saved-ok" title="Klikk for å lagre opptaket">Lagre</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="recording-editor">
+    <div class="editor-row">
+      <span class="col1of2">
+        <label for="recording-filename">Filnavn:</label>
+      </span>
+      <span class="col2of2">
+        <input type="text" style="width: 100%" id="recording-filename" value="" name="recording-filename" disabled="disabled" readonly>
+      </span>
+    </div>
+    <div class="editor-row">
+      <span>
+        <label for="recording-response-strategy">Responsstrategi:</label>
+      </span>
+      <span>
+          <select name="delay-strategy" id="recording-response-strategy">
+            <option value="SEQUENTIAL">Sekvensiell</option>
+            <option value="RANDOM">Tilfeldig</option>
+          </select>
+      </span>
+    </div>
+    <div class="editor-row">
+      <span style="display: block;">
+        <label for="recording-comment">Kommentar:</label>
+      </span>
+      <textarea id="recording-comment" rows="1"></textarea>
+    </div>
+    <hr/>
+    <form id="record-form">
+      <div id="request-editor">
+        <div class="editor-row">
+          <span class="col1of4">
+            <label for="protocol">Protocol:</label>
+          </span>
+          <span class="col2of4">
+            <input type="text" name="request-pattern-protocol" class="validatable-field" style="width: 100%" id="protocol" value="">
+          </span>
+          <span class="col3of4">
+            <label for="host">Host:</label>
+          </span>
+          <span class="col4of4">
+            <input type="text" name="request-pattern-host" class="validatable-field" style="width: 100%" id="host" value="">
+          </span>
+        </div>
+        <div class="editor-row">
+          <span class="col1of4">
+            <label for="method">Method:</label>
+          </span>
+          <span class="col2of4">
+            <input type="text" style="width: 100%" id="method" name="request-pattern-method" class="validatable-field" value="">
+          </span>
+          <span class="col3of4">
+            <label for="path">Path:</label>
+          </span>
+          <span class="col4of4">
+            <input type="text" style="width: 100%" id="path" name="request-pattern-path" class="validatable-field" value="">
+          </span>
+        </div>
+        <div class="editor-row">
+          <span class="col1of4">
+            <label for="port">Port:</label>
+          </span>
+          <span class="col2of4">
+            <input type="text" style="width: 100%" id="port" name="request-pattern-port" class="validatable-field" value="">
+          </span>
+          <span class="col3of4">
+            <label for="query">Query:</label>
+          </span>
+          <span class="col4of4">
+            <input type="text" style="width: 100%" id="query" name="request-pattern-query" class="validatable-field" value="">
+          </span>
+        </div>
+      </div>
+      <div id="response-editor" style="display: none;">
+        <div id="delay-values" class="editor-row">
+          <label for="delay-strategy">Tidsforsinkelse:</label>
+          <select name="delay-strategy" id="delay-strategy">
+            <option value="NONE">Ingen</option>
+            <option value="FIXED">Fast</option>
+            <option value="RANDOM">Tilfeldig</option>
+            <option value="NORMAL">Normalfordelt</option>
+            <option value="EXPONENTIAL">Eksponensiell</option>
+          </select>
+          &nbsp;&nbsp;
+          <label id="delay-values-label" style="display: none;">Grenseverdier (ms):</label>
+          <span id="delay-value-MIN" class="delay-value" style="display: none;">
+            <label for="delay-value-MIN-inp" class="sublabel">Min:</label>
+            <input id="delay-value-MIN-inp" type="number" name="delay-values-MIN" size="6">
+          </span>
+          <span id="delay-value-MEAN" class="delay-value" style="display: none;">
+            <label for="delay-value-MEAN-inp" class="sublabel">Middel:</label>
+            <input id="delay-value-MEAN-inp" type="number" name="delay-values-MEAN" size="6">
+          </span>
+          <span id="delay-value-MAX" class="delay-value" style="display: none;">
+            <label for="delay-value-MAX-inp" class="sublabel">Max:</label>
+            <input id="delay-value-MAX-inp" type="number" name="delay-values-MAX" size="6">
+          </span>
+        </div>
+        <div id="response-weight" class="editor-row">
+          <span id="weight-value-span">
+            <label for="weight-value-inp">Responsvekt:</label>
+            <input id="weight-value-inp" type="number" name="weight-value" size="6">
+            <span id="weight-value-text"></span>
+          </span>
+        </div>
+        <hr/>
+        <div class="editor-row">
+          <span class="col1of4">
+            <label for="code">Code:</label>
+          </span>
+          <span class="col2of4">
+            <input id="code" value="" name="response-templates-code" size="8" type="text">
+          </span>
+        </div>
+      </div>
+      <div id="header-content-editor">
+        <div class="editor-text-row">
+          <span class="col1of2">
+            <label for="header-editor" id="header-label">Header:</label>
+          </span>
+          <span class="col2of2" style="text-align: right;">
+            <input type="checkbox" id="allow-tab-indentation" tabindex="-1"> <label for="allow-tab-indentation">Tillat indentering med Tab i header/content</label>
+          </span>
+
+          <div id="header-editor" class="text-box"></div>
+        </div>
+        <div class="editor-text-row">
+          <span class="col1of2">
+            <label for="content-editor" id="content-label">Content:</label>
+          </span>
+          <div id="content-editor" class="text-box"></div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

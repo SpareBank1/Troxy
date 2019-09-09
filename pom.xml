@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>no.sb1.troxy</groupId>
+  <groupId>no.sparebank1.troxy</groupId>
   <artifactId>troxy</artifactId>
   <version>${revision}</version>
   <packaging>pom</packaging>
@@ -127,17 +127,17 @@
       </dependency>
 
       <dependency>
-        <groupId>no.sb1.troxy</groupId>
+        <groupId>no.sparebank1.troxy</groupId>
         <artifactId>filter</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>no.sb1.troxy</groupId>
+        <groupId>no.sparebank1.troxy</groupId>
         <artifactId>sdk</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>no.sb1.troxy</groupId>
+        <groupId>no.sparebank1.troxy</groupId>
         <artifactId>server</artifactId>
         <version>${project.version}</version>
       </dependency>

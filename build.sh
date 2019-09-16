@@ -1,9 +1,18 @@
 #!/bin/sh
 
 VERSION=${VERSION:-'local'}
+TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST:-''}
+
+goal() {
+    if [ "$1" = 'false' ]; then
+        echo 'deploy'
+    else
+        echo 'install'
+    fi
+}
 
 mvnDeploy() {
-    ./mvnw deploy -s ./settings.xml -Drevision="$VERSION"
+    ./mvnw "$(goal "$TRAVIS_PULL_REQUEST")" -s ./settings.xml -Drevision="$VERSION"
 }
 
 dockerBuild() {

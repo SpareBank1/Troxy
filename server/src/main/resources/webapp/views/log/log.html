@@ -1,0 +1,22 @@
+<div class="button-bar" id="log-top-button-bar">
+  <a id="previous-page-button" class="button" title="Forrige side">Forrige side</a>
+  <a id="next-page-button" class="button" title="Neste side">Neste side</a>
+  <input id="log-tail" type="checkbox" checked="checked" style="margin-left: 20px"><label for="log-tail">&nbsp;Følg loggfil</label>
+
+  <div id="log-level-checkboxes">
+    <span class="access server">
+        <input type="checkbox" name="ERROR" id="log-error" class="log-level-filter" checked="checked"><label for="log-error">Error</label>
+    </span>
+    <span class="access server">
+        <input type="checkbox" name="WARN" id="log-warning" class="log-level-filter" checked="checked"><label for="log-warning">Warning</label>
+    </span>
+    <span class="server">
+        <input type="checkbox" name="INFO" id="log-info" class="log-level-filter" checked="checked"><label for="log-info">Info</label>
+    </span>
+    <span class="server">
+        <input type="checkbox" name="DEBUG" id="log-debug" class="log-level-filter" checked="checked"><label for="log-debug">Debug</label>
+    </span>
+  </div>
+</div>
+
+<pre id="log-content" class="text-box" tabindex="-1"></pre>

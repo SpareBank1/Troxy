@@ -1,1 +1,8 @@
-target
+.idea
+*.iml
+**/target
+# us local/ as working directory when running Troxy locally
+local/*
+!local/conf/troxy.properties
+!local/conf/log4j.xml
+!**/.gitkeep

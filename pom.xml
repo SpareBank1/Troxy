@@ -64,8 +64,8 @@
 
   <modules>
     <module>filter</module>
-    <module>sdk</module>
-    <module>server</module>
+    <module>troxy-core</module>
+    <module>troxy-server</module>
   </modules>
 
   <dependencyManagement>
@@ -133,12 +133,12 @@
       </dependency>
       <dependency>
         <groupId>no.sparebank1.troxy</groupId>
-        <artifactId>sdk</artifactId>
+        <artifactId>troxy-core</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>no.sparebank1.troxy</groupId>
-        <artifactId>server</artifactId>
+        <artifactId>troxy-server</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

@@ -7,7 +7,7 @@
     <version>${revision}</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>server</artifactId>
+  <artifactId>troxy-server</artifactId>
   <name>Troxy Server</name>
 
   <dependencies>
@@ -42,7 +42,7 @@
 
     <dependency>
       <groupId>no.sparebank1.troxy</groupId>
-      <artifactId>sdk</artifactId>
+      <artifactId>troxy-core</artifactId>
     </dependency>
 
     <dependency>

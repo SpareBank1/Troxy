@@ -17,7 +17,7 @@
     </dependency>
     <dependency>
       <groupId>no.sparebank1.troxy</groupId>
-      <artifactId>sdk</artifactId>
+      <artifactId>troxy-core</artifactId>
     </dependency>
   </dependencies>
 </project>

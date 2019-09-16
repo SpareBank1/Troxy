@@ -1,0 +1,841 @@
+/* CSS for HTML elements */
+html, body {
+    font-family: sans-serif;
+    color: #363636;
+}
+
+table td {
+    padding-right: 1em;
+    padding-bottom: 0.5em;
+}
+
+* {
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none !important;
+}
+
+a:visited {
+    color: #ffffff;
+}
+
+a:hover {
+    color: #ffffff;
+}
+
+h1 {
+    font-size: 2em;
+    padding: 20px 0;
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 1.5em;
+    padding: 20px 0;
+    font-weight: bold;
+}
+
+h3 {
+    font-size: 1.2em;
+
+}
+
+p {
+    padding: 10px 0;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    background-color: #B9B9B9;
+}
+
+input[type=text], input[type=number], input[type=date], .text-box {
+    border-radius: 4px;
+    background-color: #fff;
+    border: 1px solid;
+    border-color: #cbcbcb #dadada #d9d9d9 #dadada;
+}
+
+input[type=text], input[type=number], input[type=date] {
+    color: #676767;
+    padding: 0;
+    font-size: 14px;
+}
+
+input[type=text][disabled] {
+    background: #EFEFEF;
+    color: #777;
+}
+
+/* bootbox wrap text */
+.bootbox-body {
+    overflow-wrap: break-word;
+}
+
+/* CSS used on multiple pages */
+.button {
+    cursor: pointer;
+}
+
+.button-bar {
+    height: 50px;
+    padding: 10px 20px;
+}
+
+.button-bar .button {
+    margin-left: 20px;
+}
+
+.button-bar .button:first-child {
+    margin-left: 0;
+}
+
+.button, .button:hover {
+    text-decoration: none;
+}
+
+.button-bar .button {
+    display: inline-block;
+    height: 30px;
+    border-radius: 4px;
+    line-height: 30px;
+    padding: 0 15px; /* Padding på toppen pga boxshadow slik at den ser sentrert ut */
+    color: #fff;
+    background-color: #666;
+    box-shadow: #000 0 1px 0;
+    min-width: 50px;
+}
+
+.button.save {
+    background: #60c54b;
+    box-shadow: #51a840 0 1px 0;
+}
+
+.button.saved-ok, .button.confirm, .button.ok {
+    background: url("/images/icon_check.png") no-repeat 12px 8px #60c54b;
+    padding-left: 32px;
+    box-shadow: #51a840 0 1px 0;
+}
+
+.button.delete {
+    background: #e11a1a;
+    box-shadow: #51a840 0 1px 0;
+}
+
+.text-box {
+    padding: 4px;
+}
+
+/* Padding - margin */
+.mts {
+    margin-top: 5px;
+}
+
+.mal {
+    margin: 20px;
+}
+
+.pal {
+    padding: 20px;
+}
+
+/* CSS for index page */
+#main-header {
+    height: 84px;
+    background-color: #246797;
+    color: #fff;
+}
+
+#main-logo {
+    float: left;
+    margin: 17px 40px 0 20px
+}
+
+#main-logo a {
+    display: block;
+}
+
+#main-menu {
+    float: left;
+    vertical-align: middle;
+}
+
+.main-menu-item {
+    height: 84px;
+    line-height: 84px;
+    font-size: 18px;
+    display: block;
+    float: left;
+    padding: 0 20px;
+    color: #fff;
+    vertical-align: middle;
+}
+
+.main-menu-item:hover {
+    background-color: #19486a;
+    text-decoration: none;
+}
+
+.main-menu-item.selected {
+    background-color: #19486a;
+}
+
+#troxy-mode-and-address {
+    float: right;
+    margin-right: 45px;
+}
+
+#troxy-address {
+    margin-top: 5px;
+}
+
+#main-content {
+    background-color: #efefef;
+    position: absolute;
+    top: 84px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#mode-indicator-container {
+    margin-top: 20px;
+    text-align: right;
+    height: 11px;
+}
+
+#troxy-address-host {
+    font-weight: bold;
+}
+
+/* CSS for status page */
+select {
+    min-width: 130px;
+}
+
+ul {
+    margin: 1em;
+}
+
+ul li {
+    margin-left: 1em;
+}
+
+.address {
+    display: inline-block;
+    width: 150px;
+    font-weight: bold;
+    margin-right: 2em;
+}
+
+.status {
+    font-weight: bold;
+}
+
+/* CSS for recordings page */
+li.jstree-open > a .jstree-icon {
+    background: url("/views/recordings/images/tree/folder_open.png") 2px 4px no-repeat;
+}
+
+li.jstree-closed > a .jstree-icon {
+    background: url("/views/recordings/images/tree/folder.png") 2px 4px no-repeat;
+}
+
+li.jstree-leaf > a .jstree-icon {
+    background: url("/views/recordings/images/tree/code.png") 3px 1px no-repeat;
+}
+
+.separator {
+    border-bottom: 2px solid #bbb;
+}
+
+.tab-bar {
+    height: 50px;
+    background: #fff;
+    background: -moz-linear-gradient(top,  #fff 0%, #fff 92%, #ccc 92%, #EFEFEF 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fff), color-stop(84%,#fff), color-stop(92%,#ccc), color-stop(93%,#EFEFEF)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #fff 0%,#fff 92%,#ccc 93%,#EFEFEF 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #fff 0%,#fff 92%,#ccc 93%,#EFEFEF 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #fff 0%,#fff 92%,#ccc 93%,#EFEFEF 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #fff 0%,#fff 92%,#ccc 93%,#EFEFEF 100%); /* W3C */
+}
+
+/* Tabs */
+.tab {
+    height: 50px;
+    line-height: 50px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.tab.selected {
+    background-color: #efefef;
+    border-bottom: none;
+    margin-bottom: -5px;
+    box-sizing: content-box;
+}
+
+.tab:after, .tab:before {
+    content: "\00a0"; /* Space */
+    display: inline-block;
+    height: 48px;
+    width: 20px;
+    border: none;
+}
+
+.tab.selected:after {
+    border-right: 1px solid #bbb;
+}
+
+.tab.selected:before {
+    border-left: 1px solid #bbb;
+}
+
+.tab.selected:first-child:before {
+    border-left: none;
+}
+
+/* Tool bar */
+.tool-bar {
+    height: 50px;
+    background: #fff;
+    background: -moz-linear-gradient(top,  #fff 0%, #fff 92%, #ccc 92%, #EFEFEF 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fff), color-stop(84%,#fff), color-stop(92%,#ccc), color-stop(93%,#EFEFEF)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #fff 0%,#fff 92%,#ccc 93%,#EFEFEF 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #fff 0%,#fff 92%,#ccc 93%,#EFEFEF 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #fff 0%,#fff 92%,#ccc 93%,#EFEFEF 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #fff 0%,#fff 92%,#ccc 93%,#EFEFEF 100%); /* W3C */
+}
+
+.button-group {
+    display: inline-block;
+}
+
+.button-group.right {
+    float: right;
+}
+
+.tool-bar .button {
+    height: 50px;
+    width: 20px;
+    line-height: 50px;
+    display: inline-block;
+    margin-right: 14px;
+    text-decoration: none;
+}
+
+.tool-bar .button:first-child {
+    margin-left: 10px;
+}
+
+.tool-bar .button.activate {
+    background: url("/views/recordings/images/menu/activate.png") no-repeat 0 15px;
+}
+
+.tool-bar .button.deactivate {
+    background: url("/views/recordings/images/menu/deactivate.png") no-repeat 0 15px;
+}
+
+.tool-bar .button.refresh {
+    background: url("/views/recordings/images/menu/refresh.png") no-repeat 0 15px;
+}
+
+.tool-bar .button.rename {
+    background: url("/views/recordings/images/menu/edit.png") no-repeat 0 11px;
+}
+
+.tool-bar .button.copy {
+    background: url("/views/recordings/images/menu/copy.png") no-repeat 0 11px;
+}
+
+.tool-bar .button.new-folder {
+    background: url("/views/recordings/images/menu/newfolder.png") no-repeat 0 11px;
+}
+
+.tool-bar .button.delete {
+    background: url("/views/recordings/images/menu/delete.png") no-repeat 0 11px;
+}
+
+.tool-bar .button.download {
+    background: url("/views/recordings/images/menu/download.png") no-repeat 0 11px;
+}
+
+.tool-bar .button.upload {
+    background: url("/views/recordings/images/menu/upload.png") no-repeat 0 11px;
+}
+
+.tab-button {
+    cursor: pointer;
+    display: inline-block;
+    color: #3689c2;
+    padding: 0 10px;
+    height: 30px;
+    line-height: 30px;
+}
+
+.tab-button.selected {
+    display: inline-block;
+    color: #fff;
+    background-color: #19486a;
+    border-radius: 4px;
+}
+
+/* Other */
+#menu-box {
+    background-color: #DDF;
+    border: 1px solid #AAD;
+    display: none;
+    padding: 3px;
+    position: absolute;
+}
+
+#menu-box .menu-item {
+    cursor: pointer;
+    font-family: monospace;
+}
+
+#load-files-container {
+    position: absolute;
+    margin: 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 400px;
+    border-right: 1px solid #b9b9b9;
+}
+
+#recording-message-pane {
+    position: absolute;
+    overflow: auto;
+    top: 47px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 4px 20px 0 10px;
+}
+
+.recording-message-span {
+    display: block;
+    background-color: #b2dba1;
+    height: 25px;
+}
+
+#recording-tree-container {
+    position: absolute;
+    overflow: auto;
+    top: 47px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 20px 0 10px;
+}
+
+#drag-handle {
+    position: absolute;
+    left: 386px;
+    top: 125px;
+    width: 28px;
+    height: 28px;
+    background: url("/views/recordings/images/draghandle.png") no-repeat 5px 5px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+#browse-toolbar {
+    overflow: hidden;
+}
+
+#edit-recordings-container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 400px;
+    right: 0;
+}
+
+#recording-comment {
+    width: 100%;
+}
+
+.recording-editor {
+    overflow: auto;
+    position: absolute;
+    top: 120px;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+}
+
+.editor-row {
+    margin-bottom: 4px;
+}
+
+.editor-row label {
+    line-height: 10px;
+    position: relative;
+}
+
+.editor-text-row {
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+.editor-text-row label {
+    position: relative;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+.editor-multiple-input-row input {
+    margin-right: 10px;
+}
+
+.sublabel {
+    font-size: 0.8em;
+}
+
+/* Grid / columns for text fields */
+
+.col1of2 {
+    width: 80px;
+}
+
+.col2of2 {
+    position: absolute;
+    left: 90px;
+    right: 0;
+}
+
+.col1of4 {
+    width: 80px;
+}
+
+.col2of4 {
+    position: absolute;
+    left: 90px;
+    width: 100px;
+}
+
+.col3of4 {
+    position: absolute;
+    left: 210px;
+}
+
+.col4of4 {
+    position: absolute;
+    left: 280px;
+    right: 0;
+}
+
+/*  */
+input.valid-pattern {
+    background: #dff0d8;
+}
+
+input.slow-pattern {
+    background: #fcf8e3;
+}
+
+input.invalid-pattern {
+    background: #f2dede;
+}
+
+.valid-pattern {
+    color: #468847;
+}
+
+.slow-pattern {
+    color: #c09853;
+}
+
+.invalid-pattern {
+    color: #894a48;
+}
+
+.pattern-info {
+    color: #fff;
+    text-align: center;
+    font-size: 10px;
+    font-weight: bold;
+    line-height: 14px;
+    border-radius: 100%;
+    display: block;
+    position: absolute;
+    right: -5px;
+    top: 5px;
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+
+.pattern-info.valid-pattern {
+    display: none;
+}
+
+.pattern-info.slow-pattern {
+    background: #c09853;
+}
+
+.pattern-info.invalid-pattern {
+    background: #894a48;
+}
+
+#slow-pattern-warning-indicator {
+    position: absolute;
+    top: -4px;
+    left: 68px;
+}
+
+.loaded-file {
+    background: #ddd;
+    background: -webkit-gradient(linear, left top, left bottom, from(#CCC), to(#DDD));
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#cccccc', endColorstr='#dddddd');
+    background: -moz-linear-gradient(top, #ccc, #ddd);
+
+    border-width: 1px;
+    border-style: solid;
+    border-color: #dfdfdf #ccc #bbb;
+    border-radius: 2px;
+    margin: 0 2px 0 0;
+    padding: 3px;
+    font-size: 13px;
+    color: #444;
+    overflow: hidden;
+}
+
+.loaded-file {
+    padding-right: 30px;
+    position: relative;
+}
+
+.loaded-file .fileName {
+    overflow: hidden;
+}
+
+.loaded-file .filePath {
+    color: #888;
+    font-size: 12px;
+    overflow: hidden;
+}
+
+.loaded-file .unload {
+    position: absolute;
+    margin-top: 5px;
+    margin-right: 5px;
+}
+
+#original-recording input, #original-recording .text-box {
+    background-color: #EFEFEF;
+}
+
+/* CSS for log page */
+#log-content {
+    font-family: monospace;
+    bottom: 0;
+    left: 0;
+    margin: 20px;
+    overflow: auto;
+    position: absolute;
+    right: 0;
+    top: 40px;
+}
+
+#log-content p {
+    margin: 0;
+    padding: 0;
+}
+
+#log-level-checkboxes {
+    float: right;
+    display: inline;
+    margin-left: 15px;
+}
+
+#log-level-checkboxes label {
+    background-repeat: no-repeat;
+    padding-left: 25px;
+    height: 20px;
+    line-height: 20px;
+    display: inline-block;
+}
+
+#log-level-checkboxes span {
+    margin-left: 25px;
+}
+
+#log-level-checkboxes span:first-child {
+    margin-left: 10px;
+}
+
+label[for="log-error"] {
+    background: url("/views/log/images/log_error.png");
+}
+
+label[for="log-warning"] {
+    background: url("/views/log/images/log_warning.png");
+}
+
+label[for="log-info"] {
+    background: url("/views/log/images/log_info.png");
+}
+
+label[for="log-debug"] {
+    background: url("/views/log/images/log_debug.png");
+}
+
+#log-top-button-bar {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    top: 10px;
+}
+
+#log-slider {
+    position: fixed;
+    top: 150px;
+    height: 500px
+}
+
+.log-time {
+    color: #950;
+}
+
+.log-level {
+    font-weight: bold;
+}
+
+.log-level.DEBUG {
+    color: #aad;
+}
+
+.log-level.INFO {
+    color: #55d;
+}
+
+.log-level.WARN {
+    color: #c55;
+}
+
+.log-level.ERROR {
+    color: #f32;
+}
+
+.log-thread {
+    color: #292;
+}
+
+.log-class {
+    color: #55d;
+}
+
+.log-message {
+}
+
+.button.down {
+    background: url("/views/log/images/icon_down.png") no-repeat 12px 12px #666;
+    padding-left: 32px;
+}
+
+.button.up {
+    background: url("/views/log/images/icon_up.png") no-repeat 12px 10px #666;
+    padding-left: 32px;
+}
+
+/* CSS for configuration page */
+#config-editor {
+    margin: 20px;
+    position: absolute;
+    top: 40px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: auto;
+}
+
+/* CSS for statistics page */
+#statistics-page {
+    margin: 20px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: auto;
+}
+
+#statistics-page .dataTables_scrollBody {
+    overflow: hidden !important;
+}
+
+/* this is a hack for a bug in DataTables where an extra thead is shown on table body */
+.dataTables_scrollBody thead {
+    display: none;
+}
+
+/* CSS for help page */
+#help-page {
+    margin: 10px 20px;
+    position: absolute;
+    top: 55px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: auto;
+}
+
+#help-page a {
+    text-decoration: none !important;
+}
+
+#help-page a:visited {
+    color: #0000ff;
+}
+
+#help-page a:hover {
+    color: #8800ff;
+}
+
+#help-page p {
+    margin: 0;
+    padding: 0;
+}
+
+#help-page ul {
+    margin: 0;
+}
+
+#help-page h1 {
+    margin: 0 0 5px 0;
+    padding: 0;
+}
+
+#help-page h2 {
+    margin: 20px 0 5px 0;
+    padding: 0;
+}
+
+#help-page h3 {
+    margin: 20px 0 5px 0;
+    padding: 0;
+}
+
+#help-page h4 {
+    margin: 20px 0 5px 0;
+    padding: 0;
+}
+
+#help-page h5 {
+    margin: 20px 0 5px 0;
+    padding: 0;
+}
+
+#help-page h6 {
+    margin: 20px 0 5px 0;
+    padding: 0;
+}

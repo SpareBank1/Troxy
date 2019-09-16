@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" charset="UTF-8">
+    <title>Troxy</title>
+    <link rel="stylesheet" type="text/css" href="/lib/datatables-1.10.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="/lib/jstree-3.3.4/themes/default/style.css">
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap-3.3.6/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="/troxy.css"/>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+  </head>
+
+  <body>
+    <div id="main-header">
+      <div id="main-logo">
+        <a href="#/status" title="Troxy"><img id="main-logo-img" src="/images/logo/logo_DEFAULT.png" width="167" height="34"></a>
+      </div>
+
+      <nav id="main-menu">
+        <a id="main-menu-status" class="main-menu-item selected" href="/#/status">Status</a>
+        <a id="main-menu-recordings" class="main-menu-item" href="/#/recordings">Opptak</a>
+        <a id="main-menu-log" class="main-menu-item" href="/#/log">Logg</a>
+        <a id="main-menu-configuration" class="main-menu-item" href="/#/configuration">Oppsett</a>
+        <a id="main-menu-statistics" class="main-menu-item" href="/#/statistics">Statistikk</a>
+        <a id="main-menu-help" class="main-menu-item" href="/#/help">Hjelp</a>
+      </nav>
+
+      <div id="troxy-mode-and-address">
+        <div id="mode-indicator-container"><img id="mode-indicator-img" src="/images/modeindicator/mode_DEFAULT.png"></div>
+        <div id="troxy-address">
+          <span class="troxy-address-label">Test Proxy:</span> <span id="troxy-address-host"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="main-content"></div>
+
+    <!-- load libraries -->
+    <script type="text/javascript" src="/lib/jquery-2.1.3/jquery.js"></script>
+    <script type="text/javascript" src="/lib/jquery-color-2.1.2/jquery.color.js"></script>
+    <script type="text/javascript" src="/lib/underscore-1.8.3/underscore.js"></script>
+    <script type="text/javascript" src="/lib/backbone-1.1.2/backbone.js"></script>
+    <script type="text/javascript" src="/lib/datatables-1.10.5/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="/lib/ace-1.2.3/src-noconflict/ace.js"></script>
+    <script type="text/javascript" src="/lib/ace-1.2.3/src-noconflict/ext-language_tools.js"></script>
+    <script type="text/javascript" src="/lib/jstree-3.3.4/jstree.js"></script>
+    <script type="text/javascript" src="/lib/bootstrap-3.3.6/js/bootstrap.js"></script>
+    <script type="text/javascript" src="/lib/bootbox-4.4.0/bootbox.js"></script>
+    <script type="text/javascript" src="/lib/showdown-1.8.6/showdown.js"></script>
+
+    <!-- load troxy -->
+    <script type="text/javascript" src="/troxy.js"></script>
+  </body>
+</html>

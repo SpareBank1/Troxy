@@ -8,9 +8,13 @@ Troxy is an highly configurable and extendable application that simulates respon
 Build Troxy
 `mvn clean install`
 
-Build docker image
-`docker build .` 
+######Build docker image
+`docker build -t troxy .` 
 
+######Start docker container on port 8080
+`docker run -p 8080:8080 troxy` 
+
+######Running Troxy from code
 Troxy can be started locally by running Troxy.main(). The working directory must be set to troxy/local
 
 ## Request Matching
@@ -50,6 +54,43 @@ In this mode, Troxy will send back a matching response if found. If a response i
 ##### Forwarding or Playback
 
 In this mode, Troxy will send back a matching response if found. If a response is not found the request will be forwarded to the backend system but Troxy will not record the response. This mode is designed to be used for manual testing when you want to mock a set of requests, while sending other requests as usual to the backend system. 
+
+## API
+Troxy provides an API where you can change the mode or upload mocks from disk
+
+#####Upload mocks
+~~~~
+curl -v -F directory="troxyfolder/" -F file="@recordings-201909171032.zip" http://localhost:8080/api/upload
+curl -v -F directory="troxyfolder/" -F file="@single_recording.troxy" http://localhost:8080/api/upload
+~~~~
+
+#####Change mode
+~~~~
+Troxy modes
+PLAYBACK
+RECORD
+PLAYBACK_OR_RECORD
+PASSTHROUGH
+PLAYBACK_OR_PASSTHROUGH
+
+curl 'http://localhost:8080/api/status/mode' -X PUT --data 'RECORD'
+~~~~
+
+#####Statistics interval
+~~~~
+Statistics interval (minutes)
+0
+1
+5
+10
+15
+30
+60
+1440
+
+curl 'http://localhost:8080/api/status/statisticsInterval' -X PUT --data '5'
+~~~~
+
 
 ## Editing recordings
 
@@ -176,6 +217,6 @@ A filter that replaces keys with a support function. Keys are replaced in both t
 One of the functions supported are `now`. now replaces a specified key with a timestamp on a specified format.
 
 ## Statistics
-Under the "Statistikk" tab you can see statistics of the number of requests for different recordings. The interval is default set to 60 minutes but can be configured in the file troxy.properties.
+Under the "Statistikk" tab you can see statistics of the number of requests for different recordings. The interval is default set to 60 minutes but can be configured in the file troxy.properties or under the Status page.
 
 

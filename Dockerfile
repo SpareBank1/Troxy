@@ -10,13 +10,14 @@ RUN mkdir -p /opt/troxy/bin \
     chmod -R a+w /opt/troxy/data/recordings/ && \
     useradd --system --user-group troxy
 
-USER troxy:troxy
-
+COPY ./local/conf/troxy.properties /opt/troxy/conf/troxy.properties
 COPY ./troxy-server/target/troxy-server-*.jar /opt/troxy/lib/
 COPY ./troxy-server/target/dependency/* /opt/troxy/lib/
 COPY ./filter/target/filter-*.jar /opt/troxy/data/filter/
 
-COPY ./local/conf/troxy.properties /opt/troxy/conf/troxy.properties
+RUN chown -R troxy /opt/troxy
+
+USER troxy:troxy
 
 WORKDIR /opt/troxy
 
@@ -24,5 +25,5 @@ EXPOSE 8080 443
 
 ENV JAVA_OPTS "-Dtroxy.home=/opt/troxy -XX:+HeapDumpOnOutOfMemoryError"
 
-ENTRYPOINT ["/bin/bash", "-O", "extglob", "-c", "java $JAVA_OPTS -jar lib/server-+([0-9]).+([0-9]).+([a-z0-9])?(-SNAPSHOT).jar"]
+ENTRYPOINT ["/bin/bash", "-O", "extglob", "-c", "java $JAVA_OPTS -jar lib/troxy-server-*.jar"]
 

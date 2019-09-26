@@ -17,7 +17,8 @@ mvnDeploy() {
         -s ./settings.xml \
         -Drevision="$MAVEN_REVISION" \
         -Dsonatype.username="$SONATYPE_USERNAME" \
-        -Dsonatype.password="$SONATYPE_PASSWORD"
+        -Dsonatype.password="$SONATYPE_PASSWORD" \
+        -Dgpg.passphrase="$GPG_PASSPHRASE"
     }
 
 dockerBuild() {
@@ -28,6 +29,10 @@ die() {
     echo "$0: " "$@" >&2
     exit 1
 }
+
+if [ -f './keys.gpg' ]; then
+    gpg --import ./keys.gpg
+fi
 
 mvnDeploy || die 'Maven build failure'
 dockerBuild || die 'Docker build failure'

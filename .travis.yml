@@ -1,12 +1,14 @@
----
 language: java
 install: "./install.sh"
 jdk:
-  - openjdk8
+- openjdk8
 jobs:
   include:
-    - stage: build
-      script: "./build.sh"
+  - stage: build
+    script: "./build.sh"
 branches:
   only:
-    - master
+  - master
+before_install:
+- openssl aes-256-cbc -K $encrypted_7bb25f4185a5_key -iv $encrypted_7bb25f4185a5_iv
+  -in keys.gpg.enc -out keys.gpg -d

@@ -1,30 +1,27 @@
-#!/bin/sh
+#!/bin/bash
 
-VERSION=${VERSION:-'local'}
-TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST:-''}
+source "./build-configuration.sh"
 
 goal() {
-    if [ "$1" = 'false' ]; then
-        echo 'deploy'
-    else
+    local -r deploy_creds="${SONATYPE_USERNAME}${SONATYPE_PASSWORD}"
+
+    if [ "$deploy_creds" = '' ]; then
         echo 'install'
+    else
+        echo 'deploy'
     fi
 }
 
 mvnDeploy() {
-    ./mvnw "$(goal "$TRAVIS_PULL_REQUEST")" -s ./settings.xml -Drevision="$VERSION"
-}
+    ./mvnw "$(goal)" \
+        -s ./settings.xml \
+        -Drevision="$MAVEN_REVISION" \
+        -Dsonatype.username="$SONATYPE_USERNAME" \
+        -Dsonatype.password="$SONATYPE_PASSWORD"
+    }
 
 dockerBuild() {
-    docker build -t "$TROXY_DOCKER_IMAGE:$VERSION" .
-}
-
-dockerLogin() {
-    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-}
-
-dockerPush() {
-    docker push "$TROXY_DOCKER_IMAGE:$VERSION"
+    docker build -t "$TROXY_DOCKER_IMAGE:$DOCKER_REVISION" .
 }
 
 die() {
@@ -34,6 +31,5 @@ die() {
 
 mvnDeploy || die 'Maven build failure'
 dockerBuild || die 'Docker build failure'
-dockerLogin || die 'Docker login failure'
-dockerPush || die 'Docker push failure'
 
+./deploy.sh

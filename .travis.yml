@@ -1,15 +1,12 @@
 ---
 language: java
+install: "./install.sh"
 jdk:
   - openjdk8
 jobs:
   include:
-    - stage: test
+    - stage: build
       script: "./build.sh"
-    - stage: deploy
-      script: "./deploy.sh"
-env:
-  - TROXY_DOCKER_IMAGE=docker.io/sparebank1/troxy
 branches:
   only:
     - master

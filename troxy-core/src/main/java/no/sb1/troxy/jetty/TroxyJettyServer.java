@@ -5,7 +5,8 @@ import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+
 
 import java.net.BindException;
 
@@ -14,13 +15,8 @@ public class TroxyJettyServer {
     private static final Logger log = LoggerFactory.getLogger(TroxyJettyServer.class);
 
 
-    Server server;
+    public Server jettyServer;
     private ServerConnector httpsConnector;
-
-
-    public TroxyJettyServer() {
-        throw new NotImplementedException();
-    }
 
 
     public TroxyJettyServer(TroxyJettyServerConfig config) {
@@ -30,14 +26,14 @@ public class TroxyJettyServer {
     private void createServer(TroxyJettyServerConfig config) {
         log.info("Starting Troxy HTTP/HTTPS Server");
 
-        server = new Server();
+        jettyServer = new Server();
 
         if (config.port > 0 ) {
             /* setup http connector */
-            ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory());
+            ServerConnector httpConnector = new ServerConnector(jettyServer, new HttpConnectionFactory());
             httpConnector.setPort(config.port);
             log.info("Troxy HTTP port: " + config.port);
-            server.addConnector(httpConnector);
+            jettyServer.addConnector(httpConnector);
         }
 
         if (config.securePort > 0) {
@@ -50,10 +46,10 @@ public class TroxyJettyServer {
             sslContextFactory.setKeyManagerPassword(config.httpsKeystoreAliasPassword);
             HttpConfiguration httpsConfiguration = new HttpConfiguration();
             httpsConfiguration.addCustomizer(new SecureRequestCustomizer());
-            httpsConnector = new ServerConnector(server, new SslConnectionFactory(sslContextFactory, "http/1.1"), new HttpConnectionFactory(httpsConfiguration));
+            httpsConnector = new ServerConnector(jettyServer, new SslConnectionFactory(sslContextFactory, "http/1.1"), new HttpConnectionFactory(httpsConfiguration));
             httpsConnector.setPort(config.securePort);
             log.info("Troxy HTTPS port: " + config.securePort);
-            server.addConnector(httpsConnector);
+            jettyServer.addConnector(httpsConnector);
         }
     }
 
@@ -65,9 +61,9 @@ public class TroxyJettyServer {
 
         boolean retryWithOnlyHttp = false;
         try {
-            server.start();
+            jettyServer.start();
             log.info("Successfully started Troxy HTTP/HTTPS server");
-            server.join();
+            jettyServer.join();
         } catch (BindException e) {
             log.warn("Unable to start Troxy HTTP/HTTPS Server, it seems like another program is already using the network port we wish to use", e);
             retryWithOnlyHttp = true;
@@ -76,9 +72,9 @@ public class TroxyJettyServer {
             retryWithOnlyHttp = true;
         }
         if (retryWithOnlyHttp && httpsConnector != null) {
-            server.removeConnector(httpsConnector);
+            jettyServer.removeConnector(httpsConnector);
             try {
-                server.start();
+                jettyServer.start();
                 log.info("Successfully started Troxy HTTP server");
             } catch (BindException e) {
                 log.error("Unable to start Troxy HTTP Server, it seems like another program is already using the network port we wish to use, giving up", e);
@@ -91,7 +87,7 @@ public class TroxyJettyServer {
 
     public void join() {
         try {
-            server.join();
+            jettyServer.join();
         } catch (InterruptedException e) {
             log.error("Failed joining", e);
         }
@@ -99,12 +95,12 @@ public class TroxyJettyServer {
     }
 
     public void setHandler(Handler handler) {
-        server.setHandler(handler);
+        jettyServer.setHandler(handler);
     }
 
     public void stop() {
         try {
-            server.stop();
+            jettyServer.stop();
         } catch (Exception e) {
             log.error("Unable to stop Troxy HTTP Server, giving up", e);
         }

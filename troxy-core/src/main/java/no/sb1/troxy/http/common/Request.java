@@ -85,8 +85,8 @@ public class Request extends Packet {
                 String host = request.getHeader("Host");
                 if (host != null && !host.isEmpty()) {
                     try {
-                        InetAddress addr = InetAddress.getByName(host.replaceAll(":\\d+$", ""));
-                        if (!addr.isAnyLocalAddress() && !addr.isLoopbackAddress() && NetworkInterface.getByInetAddress(addr) == null)
+               //         InetAddress addr = InetAddress.getByName(host.replaceAll(":\\d+$", ""));
+               //         if (!addr.isAnyLocalAddress() && !addr.isLoopbackAddress() && NetworkInterface.getByInetAddress(addr) == null)
                             url = new URL("http" + (request.isSecure() ? "s" : "") + "://" + host + pathInfo);
                     } catch (Exception e) {
                         log.warn("Unable to determine if host '{}' is a local address", host, e);

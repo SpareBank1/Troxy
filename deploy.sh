@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ev
 
 source "./build-configuration.sh"
 
@@ -23,23 +23,18 @@ die() {
     exit 1
 }
 
-disable() {
-    local -r reason="$1"
-    local description=''
-
-    case "$reason" in
-        'dockerCreds')
-            description="because of missing Docker credentials (use DOCKER_USERNAME and DOCKER_PASSWORD env. variables)"
-            ;;
-        *)
-            description="for no reason"
-            ;;
-    esac
-    printf "%s: Disabled %s\n" "$0" "$description" >&2
-    exit 0
+mvnDeploy() {
+    ./mvnw deploy \
+        -Prelease \
+        -s ./settings.xml \
+        -Drevision="$MAVEN_REVISION" \
+        -Dsonatype.username="$SONATYPE_USERNAME" \
+        -Dsonatype.password="$SONATYPE_PASSWORD" \
+        -Dgpg.passphrase="$GPG_PASSPHRASE"
 }
 
-hasDockerCreds || disable 'dockerCreds'
+mvnDeploy || die 'Maven deploy failure'
 
+hasDockerCreds || die 'Missing docker credentials'
 dockerLogin || die 'Docker login failure'
 dockerPush || die 'Docker push failure'

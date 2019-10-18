@@ -13,7 +13,7 @@ RUN mkdir -p /opt/troxy/bin \
 COPY ./local/conf/troxy.properties /opt/troxy/conf/troxy.properties
 COPY ./troxy-server/target/troxy-server-*.jar /opt/troxy/lib/
 COPY ./troxy-server/target/dependency/* /opt/troxy/lib/
-COPY ./filter/target/filter-*.jar /opt/troxy/data/filter/
+COPY ./filter/target/filter-*.jar /opt/troxy/data/filters/
 
 RUN chown -R troxy /opt/troxy
 

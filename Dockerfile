@@ -17,7 +17,7 @@ COPY ./filter/target/filter-*.jar /opt/troxy/data/filters/
 
 RUN chown -R troxy /opt/troxy
 
-USER troxy:troxy
+USER root
 
 WORKDIR /opt/troxy
 

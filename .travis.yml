@@ -4,7 +4,7 @@ jdk:
 - openjdk8
 jobs:
   include:
-    install: skip
+    install: ./mvnw -q de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -Prelease
     script:
       - bash ./build.sh || travis_terminate 1;
     before_deploy: 'openssl aes-256-cbc

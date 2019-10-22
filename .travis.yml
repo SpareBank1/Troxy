@@ -13,6 +13,7 @@ jobs:
       -in keys.gpg.enc -out keys.gpg -d &&
       gpg --import ./keys.gpg'
     deploy:
+      skip_cleanup: true
       provider: script
       script: bash ./deploy.sh
       on:

@@ -1,14 +1,20 @@
+os: linux
 language: java
-install: "./install.sh"
 jdk:
 - openjdk8
 jobs:
   include:
-  - stage: build
-    script: "./build.sh"
-branches:
-  only:
-  - master
-before_install:
-- openssl aes-256-cbc -K $encrypted_7bb25f4185a5_key -iv $encrypted_7bb25f4185a5_iv
-  -in keys.gpg.enc -out keys.gpg -d
+    install: skip
+    script:
+      - bash ./build.sh || travis_terminate 1;
+    before_deploy: 'openssl aes-256-cbc
+      -K $encrypted_7bb25f4185a5_key
+      -iv $encrypted_7bb25f4185a5_iv
+      -in keys.gpg.enc -out keys.gpg -d &&
+      gpg --import ./keys.gpg'
+    deploy:
+      provider: script
+      script: bash ./deploy.sh
+      on:
+        repo: sparebank1/troxy
+        branch: master

@@ -16,5 +16,5 @@ jobs:
       provider: script
       script: bash ./deploy.sh
       on:
-        repo: sparebank1/troxy
+        repo: SpareBank1/Troxy
         branch: master

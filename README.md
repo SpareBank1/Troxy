@@ -8,13 +8,13 @@ Troxy is an highly configurable and extendable application that simulates respon
 Build Troxy
 `mvn clean install`
 
-######Build docker image
+###### Build docker image
 `docker build -t troxy .` 
 
-######Start docker container on port 8080
+###### Start docker container on port 8080
 `docker run -p 8080:8080 troxy` 
 
-######Running Troxy from code
+###### Running Troxy from code
 Troxy can be started locally by running Troxy.main(). The working directory must be set to troxy/local
 
 ## Request Matching
@@ -58,13 +58,13 @@ In this mode, Troxy will send back a matching response if found. If a response i
 ## API
 Troxy provides an API where you can change the mode or upload mocks from disk
 
-#####Upload mocks
+##### Upload mocks
 ~~~~
 curl -v -F directory="troxyfolder/" -F file="@recordings-201909171032.zip" http://localhost:8080/api/upload
 curl -v -F directory="troxyfolder/" -F file="@single_recording.troxy" http://localhost:8080/api/upload
 ~~~~
 
-#####Change mode
+##### Change mode
 ~~~~
 Troxy modes
 PLAYBACK
@@ -76,7 +76,7 @@ PLAYBACK_OR_PASSTHROUGH
 curl 'http://localhost:8080/api/status/mode' -X PUT --data 'RECORD'
 ~~~~
 
-#####Statistics interval
+##### Statistics interval
 ~~~~
 Statistics interval (minutes)
 0

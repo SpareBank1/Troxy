@@ -259,7 +259,7 @@ public class Troxy implements Runnable {
         final String logDirectory = new File(logDir == null ? Paths.get(userDir, "logs").toString() : logDir).getAbsolutePath();
         final String configDirectory = new File(troxyHome, "conf").getAbsolutePath();
         final String recordingDirectory = new File(troxyHome, "data" + File.separator + "recordings").getAbsolutePath();
-        final String loadedRecordingsFile = new File(troxyHome, "data" + File.separator + "recordings" + File.separator + "loaded_recordings.ini").getAbsolutePath();
+        final String loadedRecordingsFile = new File(configDirectory + File.separator + "loaded_recordings.ini").getAbsolutePath();
         final String statisticsDirectory = new File(logDirectory, "statistics").getAbsolutePath();
         final String filterDirectory = new File(troxyHome, "data" + File.separator + "filters").getAbsolutePath();
 

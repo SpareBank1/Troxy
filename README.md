@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/SpareBank1/Troxy.svg?branch=master)](https://travis-ci.org/SpareBank1/Troxy)
-
+[![Maven Central](https://img.shields.io/maven-central/v/no.sparebank1.troxy/troxy-server.svg)](https://search.maven.org/artifact/no.sparebank1.troxy/troxy-server)
+[![Docker Pulls](https://img.shields.io/docker/pulls/sparebank1/troxy)](https://hub.docker.com/r/sparebank1/troxy)
 # Troxy
 
 Troxy is an highly configurable and extendable application that simulates responses using the HTTP(S) protocol. Troxy can handle many simultaneous requests making it an excellent choice to use when running performance tests against your application.

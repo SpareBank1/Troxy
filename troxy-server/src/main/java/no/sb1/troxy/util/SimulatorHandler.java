@@ -342,7 +342,7 @@ public class SimulatorHandler extends AbstractHandler {
                 && !"DELETE".equalsIgnoreCase(request.getMethod())
         ) {
             con.setDoOutput(true);
-            con.getOutputStream().write(request.getContent().getBytes(request.discoverCharset()));
+            con.getOutputStream().write(request.getRawByteContent());
             con.getOutputStream().close();
         }
         /* connect to webservice */

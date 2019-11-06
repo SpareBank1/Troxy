@@ -1,13 +1,12 @@
 package no.sb1.troxy.http.common;
 
-import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.annotation.XmlTransient;
 import org.slf4j.Logger;
@@ -15,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A Request is a simple bean with all the data we receive from a client.
-
  */
 public class Request extends Packet {
     /**
@@ -58,6 +56,7 @@ public class Request extends Packet {
      * The time the request was received in milliseconds since epoch.
      */
     private transient long received;
+    private byte[] rawByteContent;
 
     /**
      * Empty constructor, needed to create a Request object from a serialized state.
@@ -94,13 +93,37 @@ public class Request extends Packet {
         } catch (Exception e) {
             log.warn("Couldn't parse URL: " + pathInfo.substring(1), e);
         }
-        /* set protocol */
         setProtocol(url != null ? url.getProtocol() : "");
-
-        /* set host */
         setHost(url != null ? url.getHost() : "");
+        determinePort(url);
+        setPath(url != null ? url.getPath() : pathInfo);
+        setQuery(request.getQueryString());
+        setMethod(request.getMethod());
+        sortAndSetHeader(request);
+        copyContent(request);
+        this.received = received;
+    }
 
-        /* set port */
+    /**
+     * Sort and set headers
+     *
+     * The reason we sort header is that certain clients thinks it's amusing to randomize the order of the header
+     * elements, which is perfectly legal, but it messes up our pattern matching
+     */
+    private void sortAndSetHeader(HttpServletRequest request) {
+        Enumeration enumeration = request.getHeaderNames();
+        SortedSet<String> headerSet = new TreeSet<>();
+        while (enumeration.hasMoreElements()) {
+            String key = (String) enumeration.nextElement();
+            if ("Accept-Encoding".equalsIgnoreCase(key))
+                continue;
+            String value = request.getHeader(key);
+            headerSet.add(key + ": " + value);
+        }
+        setHeader(String.join("\n", headerSet));
+    }
+
+    private void determinePort(URL url) {
         if (url != null) {
             if (url.getPort() > 0)
                 setPort("" + url.getPort());
@@ -111,56 +134,55 @@ public class Request extends Packet {
         } else {
             setPort("");
         }
+    }
 
-        /* set path */
-        setPath(url != null ? url.getPath() : pathInfo);
-
-        /* set query string */
-        setQuery(request.getQueryString());
-
-        /* set method */
-        setMethod(request.getMethod());
-
-        /* sort and set header and detect character set for content field */
-        /* the reason we sort header is that certain clients thinks it's amusing to randomize the order of the header elements,
-         * which is perfectly legal, but it messes up our pattern matching */
-        StringBuilder sb = new StringBuilder();
-        Enumeration enumeration = request.getHeaderNames();
-        SortedSet<String> headerSet = new TreeSet<>();
-        while (enumeration.hasMoreElements()) {
-            String key = (String) enumeration.nextElement();
-            if ("Accept-Encoding".equalsIgnoreCase(key))
-                continue;
-            String value = request.getHeader(key);
-            sb.append(key).append(": ").append(value);
-            headerSet.add(sb.toString());
-            sb.setLength(0);
-        }
-        int entries = headerSet.size();
-        for (String h : headerSet) {
-            sb.append(h);
-            --entries;
-            if (entries > 0)
-                sb.append('\n');
-        }
-        setHeader(sb.toString());
-
-        /* set content */
-        sb.setLength(0);
-        try (BufferedReader br = request.getReader()) {
-            char[] buffer = new char[32768];
+    /**
+     * Copies the content of the original request.
+     *
+     * The contents of the original request is stored in two different formats:
+     *  1. As a byte array consisting of the unmodified bytes from the original request.
+     *  2. As a String created from the bytes read.
+     *
+     * The unmodified byte array is used when we pass on the request to remote systems. We do this to ensure that we do
+     * not modify the contents, since we in some cases do not know the encoding of the contents.
+     *
+     * The String representation is used for request matching. If the underlying request implementation cannot determine
+     * the encoding we fallback to "iso-8859-1". We also replace all "\r\n" with "\n". This behaviour is kept around to
+     * avoid breaking existing recordings.
+     *
+     * Of course, in the case where troxy does not determine the correct encoding for contents, troxy and the remote
+     * system may possibly see two different versions of the contents. We assume that this okay since troxy is not
+     * concerned with the actual content of requests, but rather if it matches previous requests, and that should not
+     * change even if troxy is seeing a payload that slightly incorrectly encoded.
+     */
+    private void copyContent(HttpServletRequest request) {
+        byte[] buffer = new byte[32_768];
+        int totalRead = 0;
+        try (InputStream is = request.getInputStream()) {
             int read;
-            while ((read = br.read(buffer)) != -1)
-                sb.append(buffer, 0, read);
+            while ((read = is.read(buffer, totalRead, buffer.length - totalRead)) != -1) {
+                totalRead += read;
+                if (totalRead == buffer.length) {
+                    buffer = Arrays.copyOf(buffer, buffer.length * 4);
+                }
+            }
         } catch (IOException e) {
             log.warn("Failed reading content from request", e);
         }
-        /* replace windows newline ("\r\n") with unix newline ("\n").
-         * this will break any recordings that rely on a specific newline, but such recordings are unlikely to exist.
-         */
-        setContent(sb.toString().replace("\r\n", "\n"));
+        // Arrays.copyOf(buffer, totalRead) will truncate the buffer down to actual number of bytes read
+        setRawByteContent(Arrays.copyOf(buffer, totalRead));
 
-        this.received = received;
+        try {
+            String encoding = Optional.ofNullable(request.getCharacterEncoding()).orElse("iso-8859-1");
+            String contentAsString = new String(rawByteContent, encoding).replace("\r\n", "\n");
+            setContent(contentAsString);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void setRawByteContent(byte[] buffer) {
+       this.rawByteContent = buffer;
     }
 
     /**
@@ -308,17 +330,13 @@ public class Request extends Packet {
         return received;
     }
 
-    /**
-     * Discover the character set of this request.
-     * @return The character set name or "iso-8859-1" if character set name wasn't found.
-     */
-    public String discoverCharset() {
-        return discoverCharset(header);
-    }
-    
     @Override
     public boolean equals(Object obj) {
         Request r = obj instanceof Request ? (Request) obj : null;
         return r != null && protocol.equals(r.protocol) && host.equals(r.host) && port.equals(r.port) && path.equals(r.path) && query.equals(r.query) && method.equals(r.method) && header.equals(r.header) && content.equals(r.content);
+    }
+
+    public byte[] getRawByteContent() {
+        return rawByteContent;
     }
 }

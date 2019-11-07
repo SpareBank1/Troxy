@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.annotation.XmlTransient;
 import org.slf4j.Logger;
@@ -72,6 +74,7 @@ public class Request extends Packet {
     public Request(HttpServletRequest request, long received) {
         /* path is "/<protocol>://<host>[:port][/path]" or just "/path" */
         String pathInfo = request.getPathInfo();
+        pathInfo = restoreNormalizedURL(pathInfo);
         URL url = null;
         try {
             if (pathInfo.contains("://")) {
@@ -102,6 +105,23 @@ public class Request extends Packet {
         sortAndSetHeader(request);
         copyContent(request);
         this.received = received;
+    }
+
+    /**
+     * Try to restore normalized URLs, i.e. restore http:/ to http://
+     *
+     * Finds the first occurrence of "http:/" and inserts a slash, producing "http://", while taking care to not
+     * insert a slash if we already have "://".
+     */
+    private String restoreNormalizedURL(String pathInfo) {
+        Pattern pattern = Pattern.compile("http[s]?:/[^/]");
+        Matcher matcher = pattern.matcher(pathInfo);
+        if (matcher.find()) {
+            int slashIndex = matcher.end() - 1;
+            return pathInfo.substring(0, slashIndex) + "/" + pathInfo.substring(slashIndex);
+        } else {
+            return pathInfo;
+        }
     }
 
     /**

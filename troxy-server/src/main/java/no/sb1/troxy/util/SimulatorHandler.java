@@ -1,26 +1,5 @@
 package no.sb1.troxy.util;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.StringTokenizer;
-import java.util.stream.Collectors;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import no.sb1.troxy.Troxy;
 import no.sb1.troxy.common.Config;
 import no.sb1.troxy.common.Mode;
@@ -30,9 +9,25 @@ import no.sb1.troxy.http.common.Response;
 import no.sb1.troxy.record.v3.Recording;
 import no.sb1.troxy.record.v3.RequestPattern;
 import no.sb1.troxy.record.v3.ResponseTemplate;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+
+import javax.net.ssl.*;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A handler for incoming requests.
@@ -314,11 +309,21 @@ public class SimulatorHandler extends AbstractHandler {
             simLog.debug("Unable to parse Request port as an Integer, setting port to 80");
             port = 80;
         }
-        URL url = new URL(request.getProtocol(), request.getHost(), port, pathAndQuery);
+        //Override protocol and port if proxyForceHttps is set
+        String protocol = troxy.isProxyForceHttps() ? "https" : request.getProtocol();
+        port = troxy.isProxyForceHttps() ? 443 : port;
+        URL url = new URL(protocol, request.getHost(), port, pathAndQuery);
+
         simLog.info("Connecting to host: {}", url);
         simLog.debug("Request header: {}", request.getHeader());
         simLog.debug("Request content: {}", request.getContent());
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        //Use client side certificate if provided
+        if (troxy.getProxyKeyManagers() != null && "https".equalsIgnoreCase(url.getProtocol())) {
+            HttpsURLConnection cons = (HttpsURLConnection) con;
+            simLog.info("Using configured client side certificate when proxying request!");
+            cons.setSSLSocketFactory(createClientSSLContext().getSocketFactory());
+        }
         /* set method */
         con.setRequestMethod(request.getMethod());
         /* set headers */
@@ -349,6 +354,18 @@ public class SimulatorHandler extends AbstractHandler {
         con.connect();
 
         return con;
+    }
+
+    private SSLContext createClientSSLContext() {
+        KeyManager[] keyManager = null;
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+            //TODO:Verify if works with default trustmanager and securerandom
+            sslContext.init(troxy.getProxyKeyManagers(), (TrustManager[]) Arrays.asList((TrustManager) new NoTrustManager()).toArray(), new java.security.SecureRandom());
+            return sslContext;
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to initialize client SSL context", e);
+        }
     }
 
     /**

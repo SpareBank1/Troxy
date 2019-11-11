@@ -11,6 +11,7 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.ssl.AliasedX509ExtendedKeyManager;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -19,14 +20,15 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.X509ExtendedKeyManager;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -88,6 +90,8 @@ public class Troxy implements Runnable {
     private TroxyFileHandler troxyFileHandler;
     private List<Class<Filter>> filterClasses = new ArrayList<>();
     private static TroxyJettyServer server;
+    private KeyManager[] proxyKeyManagers = null;
+    private boolean proxyForceHttps = false;
 
 
     /**
@@ -120,7 +124,8 @@ public class Troxy implements Runnable {
         /* set up server */
         server = new TroxyJettyServer(jettyConfig);
         loadFilters();
-
+        initProxySettings();
+        
         /* handlers */
         HandlerList handlerList = getHandlerList(cache);
 
@@ -198,6 +203,10 @@ public class Troxy implements Runnable {
     public String getLoadedRecordingsFile() {
         return loadedRecordingsFile;
     }
+
+    public KeyManager[] getProxyKeyManagers() { return proxyKeyManagers; }
+
+    public boolean isProxyForceHttps() { return proxyForceHttps; }
 
     /**
      * Get the list of filters that may be applied to requests/responses.
@@ -327,6 +336,7 @@ public class Troxy implements Runnable {
         mode = Mode.valueOf(config.getValue(KEY_MODE, DEFAULT_MODE.name()).toUpperCase());
         updateStatisticsInterval();
         loadFilters();
+        initProxySettings();
         return true;
     }
 
@@ -410,5 +420,42 @@ public class Troxy implements Runnable {
         }
         Collections.sort(filterClasses, (o1, o2) -> o1.getName().compareTo(o2.getName()));
         log.info("Filters will be executed in this order: {}", filterClasses.stream().map(Class::getName).collect(Collectors.joining(", ")));
+    }
+
+    private void initProxySettings() {
+        this.proxyForceHttps="true".equalsIgnoreCase(config.getValue("egress.https.force"));
+        this.proxyKeyManagers = initProxyKeyManagers();
+    }
+
+    private KeyManager[] initProxyKeyManagers() {
+        log.info("Loading client side certificates...");
+        KeyManager[] keyManager = null;
+        final String clientKeystoreLocation = config.getValue("egress.https.keystore.file");
+        if (clientKeystoreLocation == null || clientKeystoreLocation.isEmpty()) return null;
+
+        try {
+            KeyStore keyStore = KeyStore.getInstance(config.getValue("egress.https.keystore.type"));
+            FileInputStream fis = new FileInputStream(clientKeystoreLocation);
+
+            keyStore.load(fis, config.getValue("egress.https.keystore.password").toCharArray());
+
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+            keyManagerFactory.init(keyStore, config.getValue("egress.https.keystore.alias.password").toCharArray());
+            keyManager = keyManagerFactory.getKeyManagers();
+
+            String alias = config.getValue("egress.https.keystore.alias.key");
+            if (alias != null && !alias.isEmpty()) {
+                for (int i = 0; i < keyManager.length; i++) {
+                    if (keyManager[i] instanceof X509ExtendedKeyManager) {
+                        keyManager[i] = new AliasedX509ExtendedKeyManager((X509ExtendedKeyManager) keyManager[i], alias);
+                    }
+                }
+            }
+        }
+        catch (Exception e) {
+            log.error("Failed loading client certificates",e);
+            throw new IllegalStateException("Unable to initialize client key manager", e);
+        }
+        return keyManager;
     }
 }

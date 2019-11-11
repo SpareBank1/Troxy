@@ -119,20 +119,14 @@ public class SimulatorHandler extends AbstractHandler {
                 filter.doFilterRequest(request, true);
 
             HttpURLConnection con = null;
-            Response response = null;
             try {
-                /* set up connection to host */
+                //Proxy request to remote host
                 con = connectToHost(request);
+                remoteResponse = new Response(con);
 
-                /* handle response */
-                response = new Response(con);
-                if (mode == Mode.RECORD || mode == Mode.PLAYBACK_OR_RECORD) {
-                    /* save respons and return the original during RECORD */
-                    remoteResponse = response;
-                }
-                simLog.info("Response received from remote host: {}", response);
-                simLog.debug("Response header: {}", response.getHeader());
-                simLog.debug("Response content: {}", response.getContent());
+                simLog.info("Response received from remote host: {}", remoteResponse);
+                simLog.debug("Response header: {}", remoteResponse.getHeader());
+                simLog.debug("Response content: {}", remoteResponse.getContent());
             } catch (Exception e) {
                 simLog.warn("Unable to connect to host", e);
                 unableToReachHost = true;
@@ -142,15 +136,17 @@ public class SimulatorHandler extends AbstractHandler {
                     con.disconnect();
             }
 
-            if (response != null) {
+            if (remoteResponse != null) {
                 /* run filters "filterServerResponse()" on the response before saving to cache */
                 for (Filter filter : filters)
-                    filter.doFilterResponse(response, true);
+                    filter.doFilterResponse(remoteResponse, true);
 
                 RequestPattern requestPattern = new RequestPattern(request);
-                ResponseTemplate responseTemplate = new ResponseTemplate(response);
+                ResponseTemplate responseTemplate = new ResponseTemplate(remoteResponse);
                 Recording recording = new Recording(requestPattern, responseTemplate);
-                cacheResults.add(new Cache.Result(recording, new HashMap<>()));
+
+                //Skip adding to cache for pure PASSTHROUGH
+                if (mode != Mode.PASSTHROUGH) cacheResults.add(new Cache.Result(recording, new HashMap<>()));
 
                 /* save recording if in a record mode */
                 if (mode == Mode.RECORD || mode == Mode.PLAYBACK_OR_RECORD) {
@@ -241,10 +237,12 @@ public class SimulatorHandler extends AbstractHandler {
         byte[] contentBytes = response.getContent().getBytes(response.discoverCharset());
         /* status */
         try {
-            servletResponse.setStatus(Integer.parseInt(response.getCode()));
+            int code = Integer.parseInt(response.getCode());
+            if (code <400) servletResponse.setStatus(code);
+            else servletResponse.sendError(code,response.getReason());
         } catch (NumberFormatException e) {
-            simLog.info("Unable to parse Response code as an Integer, setting Response code to {}", HttpURLConnection.HTTP_OK);
-            servletResponse.setStatus(HttpURLConnection.HTTP_OK);
+            simLog.info("Unable to parse Response code as an Integer, setting Response code to {}", HttpURLConnection.HTTP_BAD_GATEWAY);
+            servletResponse.setStatus(HttpURLConnection.HTTP_BAD_GATEWAY);
         }
         /* headers */
         StringTokenizer st = new StringTokenizer(response.getHeader(), "\n");

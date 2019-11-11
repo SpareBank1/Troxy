@@ -23,6 +23,8 @@ public class Response extends Packet {
      * Status code for this response.
      */
     private String code = "";
+
+    private String reason = null;
     /**
      * Header for response.
      */
@@ -51,9 +53,11 @@ public class Response extends Packet {
         /* set status code */
         try {
             code = "" + remoteConnection.getResponseCode();
+            reason = remoteConnection.getResponseMessage();
         } catch (IOException e) {
             log.info("Failed reading response code, setting it to {}", HttpURLConnection.HTTP_INTERNAL_ERROR, e);
             code = "" + HttpURLConnection.HTTP_INTERNAL_ERROR;
+            reason ="TROXY: Failed to extract responsecode from remoteConnection";
         }
 
         /* set header */
@@ -90,8 +94,8 @@ public class Response extends Packet {
                 int read;
                 while ((read = br.read(buffer)) != -1)
                     sb.append(buffer, 0, read);
-            } catch (IOException e2) {
-                log.warn("Failed reading response content from error stream, incomplete or no content in response", e);
+            } catch (IOException|NullPointerException e2 ) {
+                log.warn("Failed reading response content from error stream, incomplete or no content in response", e2);
             }
         }
         content = sb.toString();
@@ -102,7 +106,7 @@ public class Response extends Packet {
      */
     @Override
     public String toString() {
-        return "[CODE: " + getCode() + "] [HEADER: " + getHeader().length() + " characters] [CONTENT: " + getContent().length() + " characters]";
+        return "[CODE: " + getCode() + "] [REASON: " + getReason() +"] [HEADER: " + getHeader().length() + " characters] [CONTENT: " + getContent().length() + " characters]";
     }
 
     /**
@@ -119,6 +123,14 @@ public class Response extends Packet {
      */
     public String getCode() {
         return code;
+    }
+
+    /**
+     * Get the HTTP status reason phrase (if any).
+     * @return The reason.
+     */
+    public String getReason() {
+        return reason;
     }
 
     /**

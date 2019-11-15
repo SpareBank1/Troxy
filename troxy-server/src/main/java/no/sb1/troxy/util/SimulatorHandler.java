@@ -21,6 +21,7 @@ import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import no.sb1.troxy.Troxy;
 import no.sb1.troxy.common.Config;
 import no.sb1.troxy.common.Mode;
@@ -75,11 +76,11 @@ public class SimulatorHandler extends AbstractHandler {
     /**
      * Handle an incoming request.
      *
-     * @param target {@inheritDoc}
-     * @param jettyRequest {@inheritDoc}
-     * @param servletRequest {@inheritDoc}
+     * @param target          {@inheritDoc}
+     * @param jettyRequest    {@inheritDoc}
+     * @param servletRequest  {@inheritDoc}
      * @param servletResponse {@inheritDoc}
-     * @throws IOException {@inheritDoc}
+     * @throws IOException      {@inheritDoc}
      * @throws ServletException {@inheritDoc}
      */
     @Override
@@ -183,7 +184,7 @@ public class SimulatorHandler extends AbstractHandler {
                         for (int count = 0; ; ++count) {
                             Path path = Paths.get(directory, filename + (count < 100 ? count < 10 ? "00" : "0" : "") + count + ".troxy");
                             if (!troxyFileHandler.fileExists(path.toString())) {
-                                recording.setFilename(path.toString().replace("\\","/"));
+                                recording.setFilename(path.toString().replace("\\", "/"));
                                 break;
                             }
                         }
@@ -238,8 +239,8 @@ public class SimulatorHandler extends AbstractHandler {
         /* status */
         try {
             int code = Integer.parseInt(response.getCode());
-            if (code <400) servletResponse.setStatus(code);
-            else servletResponse.sendError(code,response.getReason());
+            if (code < 400) servletResponse.setStatus(code);
+            else servletResponse.sendError(code, response.getReason());
         } catch (NumberFormatException e) {
             simLog.info("Unable to parse Response code as an Integer, setting Response code to {}", HttpURLConnection.HTTP_BAD_GATEWAY);
             servletResponse.setStatus(HttpURLConnection.HTTP_BAD_GATEWAY);
@@ -287,6 +288,7 @@ public class SimulatorHandler extends AbstractHandler {
      * Create a Troxy error response to the client.
      * In case we don't have a response to the client, we'll create an "error" response.
      * Using HTTP status code 418, which really is an April Fools' joke, but it's unlikely to be confused with a "real" status code like 500 or 404.
+     *
      * @return A Troxy error response.
      */
     private Response createTroxyErrorResponse(String reason) {
@@ -299,6 +301,7 @@ public class SimulatorHandler extends AbstractHandler {
 
     /**
      * Connect to the remote host specified by the client.
+     *
      * @param request The Request from the client.
      * @return A connection to the remote host.
      * @throws IOException If unable to connect to the remote host.

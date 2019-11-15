@@ -21,6 +21,7 @@ import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import no.sb1.troxy.Troxy;
 import no.sb1.troxy.common.Config;
 import no.sb1.troxy.common.Mode;
@@ -75,11 +76,11 @@ public class SimulatorHandler extends AbstractHandler {
     /**
      * Handle an incoming request.
      *
-     * @param target {@inheritDoc}
-     * @param jettyRequest {@inheritDoc}
-     * @param servletRequest {@inheritDoc}
+     * @param target          {@inheritDoc}
+     * @param jettyRequest    {@inheritDoc}
+     * @param servletRequest  {@inheritDoc}
      * @param servletResponse {@inheritDoc}
-     * @throws IOException {@inheritDoc}
+     * @throws IOException      {@inheritDoc}
      * @throws ServletException {@inheritDoc}
      */
     @Override
@@ -119,20 +120,14 @@ public class SimulatorHandler extends AbstractHandler {
                 filter.doFilterRequest(request, true);
 
             HttpURLConnection con = null;
-            Response response = null;
             try {
-                /* set up connection to host */
+                //Proxy request to remote host
                 con = connectToHost(request);
+                remoteResponse = new Response(con);
 
-                /* handle response */
-                response = new Response(con);
-                if (mode == Mode.RECORD || mode == Mode.PLAYBACK_OR_RECORD) {
-                    /* save respons and return the original during RECORD */
-                    remoteResponse = response;
-                }
-                simLog.info("Response received from remote host: {}", response);
-                simLog.debug("Response header: {}", response.getHeader());
-                simLog.debug("Response content: {}", response.getContent());
+                simLog.info("Response received from remote host: {}", remoteResponse);
+                simLog.debug("Response header: {}", remoteResponse.getHeader());
+                simLog.debug("Response content: {}", remoteResponse.getContent());
             } catch (Exception e) {
                 simLog.warn("Unable to connect to host", e);
                 unableToReachHost = true;
@@ -142,15 +137,17 @@ public class SimulatorHandler extends AbstractHandler {
                     con.disconnect();
             }
 
-            if (response != null) {
+            if (remoteResponse != null) {
                 /* run filters "filterServerResponse()" on the response before saving to cache */
                 for (Filter filter : filters)
-                    filter.doFilterResponse(response, true);
+                    filter.doFilterResponse(remoteResponse, true);
 
                 RequestPattern requestPattern = new RequestPattern(request);
-                ResponseTemplate responseTemplate = new ResponseTemplate(response);
+                ResponseTemplate responseTemplate = new ResponseTemplate(remoteResponse);
                 Recording recording = new Recording(requestPattern, responseTemplate);
-                cacheResults.add(new Cache.Result(recording, new HashMap<>()));
+
+                //Skip adding to cache for pure PASSTHROUGH
+                if (mode != Mode.PASSTHROUGH) cacheResults.add(new Cache.Result(recording, new HashMap<>()));
 
                 /* save recording if in a record mode */
                 if (mode == Mode.RECORD || mode == Mode.PLAYBACK_OR_RECORD) {
@@ -187,7 +184,7 @@ public class SimulatorHandler extends AbstractHandler {
                         for (int count = 0; ; ++count) {
                             Path path = Paths.get(directory, filename + (count < 100 ? count < 10 ? "00" : "0" : "") + count + ".troxy");
                             if (!troxyFileHandler.fileExists(path.toString())) {
-                                recording.setFilename(path.toString().replace("\\","/"));
+                                recording.setFilename(path.toString().replace("\\", "/"));
                                 break;
                             }
                         }
@@ -241,10 +238,12 @@ public class SimulatorHandler extends AbstractHandler {
         byte[] contentBytes = response.getContent().getBytes(response.discoverCharset());
         /* status */
         try {
-            servletResponse.setStatus(Integer.parseInt(response.getCode()));
+            int code = Integer.parseInt(response.getCode());
+            if (code < 400) servletResponse.setStatus(code);
+            else servletResponse.sendError(code, response.getReason());
         } catch (NumberFormatException e) {
-            simLog.info("Unable to parse Response code as an Integer, setting Response code to {}", HttpURLConnection.HTTP_OK);
-            servletResponse.setStatus(HttpURLConnection.HTTP_OK);
+            simLog.info("Unable to parse Response code as an Integer, setting Response code to {}", HttpURLConnection.HTTP_BAD_GATEWAY);
+            servletResponse.setStatus(HttpURLConnection.HTTP_BAD_GATEWAY);
         }
         /* headers */
         StringTokenizer st = new StringTokenizer(response.getHeader(), "\n");
@@ -289,6 +288,7 @@ public class SimulatorHandler extends AbstractHandler {
      * Create a Troxy error response to the client.
      * In case we don't have a response to the client, we'll create an "error" response.
      * Using HTTP status code 418, which really is an April Fools' joke, but it's unlikely to be confused with a "real" status code like 500 or 404.
+     *
      * @return A Troxy error response.
      */
     private Response createTroxyErrorResponse(String reason) {
@@ -301,6 +301,7 @@ public class SimulatorHandler extends AbstractHandler {
 
     /**
      * Connect to the remote host specified by the client.
+     *
      * @param request The Request from the client.
      * @return A connection to the remote host.
      * @throws IOException If unable to connect to the remote host.

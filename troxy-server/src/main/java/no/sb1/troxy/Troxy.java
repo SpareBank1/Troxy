@@ -7,6 +7,7 @@ import no.sb1.troxy.jetty.TroxyJettyServer;
 import no.sb1.troxy.jetty.TroxyJettyServer.TroxyJettyServerConfig.TroxyJettyServerConfigBuilder;
 import no.sb1.troxy.rest.ApiHandler;
 import no.sb1.troxy.util.*;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -121,37 +122,40 @@ public class Troxy implements Runnable {
         mode = Mode.valueOf(config.getValue(KEY_MODE, DEFAULT_MODE.name()).toUpperCase());
 
         TroxyJettyServer.TroxyJettyServerConfig jettyConfig = createConfig();
-        /* set up server */
+
         server = new TroxyJettyServer(jettyConfig);
+
         loadFilters();
         initProxySettings();
-        
-        /* handlers */
-        HandlerList handlerList = getHandlerList(cache);
 
-        server.setHandler(handlerList);
-
+        server.setHandler(getHandlerList(cache));
     }
 
     private HandlerList getHandlerList(Cache cache) {
         HandlerList handlerList = new HandlerList();
-        // a handler working like an interceptor to store recent requests sent to the server
+
+        //Auditing interceptor for logging all requests
         RequestInterceptor requestInterceptor = new RequestInterceptor();
         handlerList.addHandler(requestInterceptor);
-
-        // a resource handler for static files (html, js, css)
-        ResourceHandler resourceHandler = new ResourceHandler();
-        String resourceBase = "server/server/src/main/resources/webapp";
-        if ((new File(resourceBase)).exists())
-            resourceHandler.setResourceBase(resourceBase); // running locally, makes us able to modify html/css/js without building a new jar
-        else
-            resourceHandler.setResourceBase(Troxy.class.getClassLoader().getResource("webapp").toExternalForm());
-        handlerList.addHandler(resourceHandler);
 
         //Enable REST API by default
         String enableRest = config.getValue("troxy.restapi.enabled");
         if (!"false".equalsIgnoreCase(enableRest)) {
-            // a servlet for handling the REST api
+
+            //Static resource handler for Troxy UI  (html, js etc.)
+            ResourceHandler resourceHandler = new ResourceHandler();
+            String resourceBase = "server/server/src/main/resources/webapp";
+            if ((new File(resourceBase)).exists())
+                resourceHandler.setResourceBase(resourceBase); // running locally, makes us able to modify html/css/js without building a new jar
+            else
+                resourceHandler.setResourceBase(Troxy.class.getClassLoader().getResource("webapp").toExternalForm());
+            ContextHandler staticHandler = new ContextHandler();
+            staticHandler.setContextPath("/");
+            staticHandler.setVirtualHosts(getRestAPIHostnames());
+            staticHandler.setHandler(resourceHandler);
+            handlerList.addHandler(staticHandler);
+
+            //Jersey Resource handler for Troxy REST API
             ResourceConfig resourceConfig = new ResourceConfig();
             resourceConfig.register(JacksonFeature.class);
             resourceConfig.register(MultiPartFeature.class);
@@ -159,19 +163,15 @@ public class Troxy implements Runnable {
             resourceConfig.property(ServerProperties.METAINF_SERVICES_LOOKUP_DISABLE, true);
             resourceConfig.register(MultiPartFeature.class);
             resourceConfig.register(new ApiHandler(this, config, statisticsCollector, troxyFileHandler, cache));
-
             ServletHolder apiServlet = new ServletHolder(new ServletContainer(resourceConfig));
             apiServlet.setInitOrder(0);
-
-            ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-            context.setVirtualHosts(getRestAPIHostnames());
-            context.setContextPath("/api");
-            context.addServlet(apiServlet, "/*");
-
-            handlerList.addHandler(context);
+            ServletContextHandler restHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+            restHandler.setVirtualHosts(getRestAPIHostnames());
+            restHandler.setContextPath("/api");
+            restHandler.addServlet(apiServlet, "/*");
+            handlerList.addHandler(restHandler);
         }
-
-        // and finally the simulator handler
+        //Main handler
         SimulatorHandler simulatorHandler = new SimulatorHandler(this, config, troxyFileHandler, cache);
         handlerList.addHandler(simulatorHandler);
         return handlerList;

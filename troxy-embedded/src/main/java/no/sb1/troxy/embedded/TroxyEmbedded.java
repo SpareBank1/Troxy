@@ -2,25 +2,13 @@ package no.sb1.troxy.embedded;
 
 import no.sb1.troxy.common.Config;
 import no.sb1.troxy.common.Mode;
-import no.sb1.troxy.http.common.Filter;
 import no.sb1.troxy.jetty.TroxyJettyServer;
 import no.sb1.troxy.util.*;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import static java.lang.String.format;
 
@@ -29,15 +17,19 @@ public class TroxyEmbedded {
 
     private static final Logger log = LoggerFactory.getLogger(TroxyEmbedded.class);
 
+    private static TroxyJettyServer server = null;
 
 
+    public static TroxyJettyServer runTroxyEmbedded(List<String> recordingFiles, int port)  {
+        return runTroxyEmbedded(recordingFiles, port, Mode.PLAYBACK);
+    }
 
     /**
      *
      * Starts Troxy for embedded use. When this function returns is Troxy up and ready to receive network traffic
      *
      */
-    public static TroxyJettyServer runTroxyEmbedded(List<String> recordingFiles, int port)  {
+    public static TroxyJettyServer runTroxyEmbedded(List<String> recordingFiles, int port, Mode mode)  {
         long t = System.currentTimeMillis();
 
         /* set log level */
@@ -50,10 +42,13 @@ public class TroxyEmbedded {
         TroxyJettyServer.TroxyJettyServerConfig.TroxyJettyServerConfigBuilder builder = new TroxyJettyServer.TroxyJettyServerConfig.TroxyJettyServerConfigBuilder();
         builder.setPort(port);
 
-        TroxyJettyServer server = new TroxyJettyServer(builder.createTroxyJettyServerConfig());
+        server = new TroxyJettyServer(builder.createTroxyJettyServerConfig());
         //TODO ? loadFilters();
 
-        HandlerList handlerList = getHandlerList(cache,  new Config(new HashMap<>()), troxyFileHandler);
+        HashMap<String,String> config = new HashMap<>();
+        config.put("troxy.restapi.enabled","false");
+
+        HandlerList handlerList = getHandlerList(cache,  new Config(config), troxyFileHandler, mode);
         server.setHandler(handlerList);
 
         try {
@@ -81,13 +76,13 @@ public class TroxyEmbedded {
 
     private static Cache createCache(List<String> recordingsFiles, TroxyFileHandler troxyFileHandler) {
         Cache cache = Cache.createCacheRoot();
-        Cache.loadRecordingsWithPaths(cache, troxyFileHandler, new HashSet<>(recordingsFiles));
+        Cache.loadRecordingsWithPaths(cache, troxyFileHandler, recordingsFiles != null ? new HashSet<>(recordingsFiles) : Collections.emptySet());
 
         return cache;
     }
 
 
-    private static HandlerList getHandlerList(Cache cache, Config config, TroxyFileHandler troxyFileHandler) {
+    private static HandlerList getHandlerList(Cache cache, Config config, TroxyFileHandler troxyFileHandler, Mode mode) {
         HandlerList handlerList = new HandlerList();
         // a handler working like an interceptor to store recent requests sent to the server
         RequestInterceptor requestInterceptor = new RequestInterceptor();
@@ -96,11 +91,12 @@ public class TroxyEmbedded {
 
         // and finally the simulator handler
         SimulatorHandler simulatorHandler = new SimulatorHandler(
-                new ModeHolder(Mode.PLAYBACK),
+                new ModeHolder(mode),
                 new ArrayList<>() /*  (no filter classes?) */,
                 config,
                 troxyFileHandler,
-                cache);
+                cache,
+                server);
         handlerList.addHandler(simulatorHandler);
         return handlerList;
     }

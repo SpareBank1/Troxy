@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import static no.sb1.troxy.util.SimulatorHandler.parseRestAPIHostnames;
+
 /**
  * A server for HTTP requests.
  */
@@ -93,6 +95,7 @@ public class Troxy implements Runnable {
     private static TroxyJettyServer server;
     private KeyManager[] proxyKeyManagers = null;
     private boolean proxyForceHttps = false;
+    private static String[] restApiHostNames = null;
 
 
     /**
@@ -124,6 +127,7 @@ public class Troxy implements Runnable {
         TroxyJettyServer.TroxyJettyServerConfig jettyConfig = createConfig();
 
         server = new TroxyJettyServer(jettyConfig);
+        restApiHostNames = parseRestAPIHostnames(config);
 
         loadFilters();
         initProxySettings();
@@ -151,7 +155,7 @@ public class Troxy implements Runnable {
                 resourceHandler.setResourceBase(Troxy.class.getClassLoader().getResource("webapp").toExternalForm());
             ContextHandler staticHandler = new ContextHandler();
             staticHandler.setContextPath("/");
-            staticHandler.setVirtualHosts(getRestAPIHostnames());
+            staticHandler.setVirtualHosts(restApiHostNames);
             staticHandler.setHandler(resourceHandler);
             handlerList.addHandler(staticHandler);
 
@@ -166,20 +170,15 @@ public class Troxy implements Runnable {
             ServletHolder apiServlet = new ServletHolder(new ServletContainer(resourceConfig));
             apiServlet.setInitOrder(0);
             ServletContextHandler restHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-            restHandler.setVirtualHosts(getRestAPIHostnames());
+            restHandler.setVirtualHosts(restApiHostNames);
             restHandler.setContextPath("/api");
             restHandler.addServlet(apiServlet, "/*");
             handlerList.addHandler(restHandler);
         }
         //Main handler
-        SimulatorHandler simulatorHandler = new SimulatorHandler(modeHolder, filterClasses, config, troxyFileHandler, cache);
+        SimulatorHandler simulatorHandler = new SimulatorHandler(modeHolder, filterClasses, config, troxyFileHandler, cache, server);
         handlerList.addHandler(simulatorHandler);
         return handlerList;
-    }
-
-    private String[] getRestAPIHostnames() {
-        String restHostnames=config.getValue("troxy.restapi.hostnames");
-        return restHostnames != null && !restHostnames.isEmpty() ? restHostnames.trim().split("\\s*,\\s*"): null;
     }
 
     /**

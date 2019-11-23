@@ -3,8 +3,6 @@ package no.sb1.troxy.http.common;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -84,13 +82,7 @@ public class Request extends Packet {
                 // assume http(s) and attempt to guess these values
                 String host = request.getHeader("Host");
                 if (host != null && !host.isEmpty()) {
-                    try {
-               //         InetAddress addr = InetAddress.getByName(host.replaceAll(":\\d+$", ""));
-               //         if (!addr.isAnyLocalAddress() && !addr.isLoopbackAddress() && NetworkInterface.getByInetAddress(addr) == null)
-                            url = new URL("http" + (request.isSecure() ? "s" : "") + "://" + host + pathInfo);
-                    } catch (Exception e) {
-                        log.warn("Unable to determine if host '{}' is a local address", host, e);
-                    }
+                    url = new URL("http" + (request.isSecure() ? "s" : "") + "://" + host + pathInfo);
                 }
             }
         } catch (Exception e) {
@@ -210,7 +202,7 @@ public class Request extends Packet {
      */
     @Override
     public String toString() {
-        return getProtocol() + "://" + getHost() + ":" + getPort() + getPath() + "?" + getQuery() + " [" + getMethod() + "] [HEADER: " + getHeader().length() + " characters] [CONTENT: " + getContent().length() + " characters]";
+        return getProtocol() + "://" + getHost() + ":" + getPort() + getPath() + (!"".equals(getQuery()) ? "?" + getQuery() : "") + " [" + getMethod() + "] [HEADER: " + getHeader().length() + " characters] [CONTENT: " + getContent().length() + " characters]";
     }
 
     /**

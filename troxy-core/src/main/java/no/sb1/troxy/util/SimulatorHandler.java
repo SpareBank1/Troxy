@@ -2,9 +2,11 @@ package no.sb1.troxy.util;
 
 import no.sb1.troxy.common.Config;
 import no.sb1.troxy.common.Mode;
+import no.sb1.troxy.http.common.ConnectorAddr;
 import no.sb1.troxy.http.common.Filter;
 import no.sb1.troxy.http.common.Request;
 import no.sb1.troxy.http.common.Response;
+import no.sb1.troxy.jetty.TroxyJettyServer;
 import no.sb1.troxy.record.v3.Recording;
 import no.sb1.troxy.record.v3.RequestPattern;
 import no.sb1.troxy.record.v3.ResponseTemplate;
@@ -19,8 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyManagementException;
@@ -43,6 +44,10 @@ public class SimulatorHandler extends AbstractHandler {
     private final Config config;
     private final TroxyFileHandler troxyFileHandler;
     private final Cache cache;
+    private List<Integer> connectorPorts;
+    private List<String> restApiHosts;
+    private Boolean restApiEnabled=null;
+    TroxyJettyServer server;
 
     private KeyManager[] proxyKeyManagers = null;
     private boolean proxyForceHttps = false;
@@ -71,12 +76,14 @@ public class SimulatorHandler extends AbstractHandler {
                             final List<Class<Filter>> filterClasses,
                             final Config config,
                             final TroxyFileHandler troxyFileHandler,
-                            Cache cache) {
+                            Cache cache,
+                            TroxyJettyServer server) {
         this.modeHolder = modeholder;
         this.filterClasses = filterClasses;
         this.config = config;
         this.troxyFileHandler = troxyFileHandler;
         this.cache = cache;
+        this.server = server;
 
         initProxySettings();
     }
@@ -313,7 +320,7 @@ public class SimulatorHandler extends AbstractHandler {
      * @throws IOException If unable to connect to the remote host.
      */
     private HttpURLConnection connectToHost(Request request) throws IOException {
-        String pathAndQuery = request.getPath() + "?" + request.getQuery();
+        String pathAndQuery = request.getPath() + (!"".equals(request.getQuery()) ? "?" + request.getQuery() : "");
         int port;
         try {
             port = Integer.parseInt(request.getPort());
@@ -326,6 +333,9 @@ public class SimulatorHandler extends AbstractHandler {
         port = proxyForceHttps ? 443 : port;
         URL url = new URL(protocol, request.getHost(), port, pathAndQuery);
 
+        //Ensure we are not creating a local loop by forwarding traffic to ourselves...
+        ensureUrlNotCausingLoop(url);
+
         simLog.info("Connecting to host: {}", url);
         simLog.debug("Request header: {}", request.getHeader());
         simLog.debug("Request content: {}", request.getContent());
@@ -333,7 +343,7 @@ public class SimulatorHandler extends AbstractHandler {
         //Use client side certificate if provided
         if (proxyKeyManagers != null && "https".equalsIgnoreCase(url.getProtocol())) {
             HttpsURLConnection cons = (HttpsURLConnection) con;
-            simLog.info("Using custom SSL truststore: {}, alias: {} when forwarding request",config.getValue("egress.https.keystore.file"),config.getValue("egress.https.keystore.alias.key"));
+            simLog.info("Using custom SSL truststore: {}, alias: {} when forwarding request", config.getValue("egress.https.keystore.file"), config.getValue("egress.https.keystore.alias.key"));
             cons.setSSLSocketFactory(createClientSSLContext().getSocketFactory());
         }
         /* set method */
@@ -445,4 +455,53 @@ public class SimulatorHandler extends AbstractHandler {
         return keyManager;
     }
 
+    private void ensureUrlNotCausingLoop(URL url) throws IOException {
+        if (url == null) return;
+        if (isSimulatorTarget(url.getHost(), url.getPort())) {
+            simLog.warn("Troxy loop prevention: skipping packet forwarding to {}:{} that could cause a local loop.", url.getHost(), url.getPort());
+            throw new ConnectException("Suggested URL target could cause a loop: "+url.toString());
+        }
+    }
+
+    private boolean isSimulatorTarget(String hostname, int port) throws IOException {
+        InetAddress addr = InetAddress.getByName(hostname);
+        if (NetworkInterface.getByInetAddress(addr) != null) {
+            if (getConnectorAddrs().contains(port) && (!isRestApiEnabled() || !isRestAPIHostName(hostname))) return true;
+        }
+        return false;
+    }
+
+    private boolean isRestAPIHostName(String hostname) {
+        return getRestApiHosts().contains(hostname) || getRestApiHosts().size() == 0;
+    }
+
+    private List<Integer> getConnectorAddrs() throws IOException {
+        if (connectorPorts != null) return connectorPorts;
+        List<ConnectorAddr> connectorAddrs = server.getConnectorAddresses();
+        connectorPorts = connectorAddrs.stream().map(ConnectorAddr::getPort).collect(Collectors.toList());
+        return connectorPorts;
+    }
+
+    private List<String> getRestApiHosts() {
+        if (restApiHosts != null) return restApiHosts;
+        String[] hostNames = parseRestAPIHostnames(config);
+        restApiHosts = hostNames != null ? Arrays.asList(hostNames) : Collections.EMPTY_LIST;
+        return restApiHosts;
+    }
+
+    private boolean isRestApiEnabled() {
+        if (restApiEnabled != null) return restApiEnabled;
+        restApiEnabled=parseRestAPIEnabled(config);
+        return restApiEnabled;
+    }
+
+    public static String[] parseRestAPIHostnames(Config config) {
+        String restHostnames = config.getValue("troxy.restapi.hostnames");
+        return restHostnames != null && !restHostnames.isEmpty() ? restHostnames.trim().split("\\s*,\\s*") : null;
+    }
+
+    public static boolean parseRestAPIEnabled(Config config) {
+        String enableRest = config.getValue("troxy.restapi.enabled");
+        return !"false".equalsIgnoreCase(enableRest);
+    }
 }

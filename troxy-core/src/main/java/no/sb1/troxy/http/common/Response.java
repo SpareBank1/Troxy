@@ -2,6 +2,7 @@ package no.sb1.troxy.http.common;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.util.List;
@@ -50,17 +51,20 @@ public class Response extends Packet {
      * @param remoteConnection A connection to the remote host.
      */
     public Response(HttpURLConnection remoteConnection) {
-        /* set status code */
+        /* Extract status code and status reason */
+        int responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
+        String responseReason = null;
         try {
-            code = "" + remoteConnection.getResponseCode();
-            reason = remoteConnection.getResponseMessage();
-        } catch (IOException e) {
+            responseCode = remoteConnection.getResponseCode();
+            responseReason = remoteConnection.getResponseMessage();
+        } catch (Exception e) {
             log.info("Failed reading response code, setting it to {}", HttpURLConnection.HTTP_INTERNAL_ERROR, e);
-            code = "" + HttpURLConnection.HTTP_INTERNAL_ERROR;
-            reason ="TROXY: Failed to extract responsecode from remoteConnection";
+            responseReason = "TROXY: Failed to extract responsecode from remoteConnection";
         }
+        code = "" + responseCode;
+        reason = responseReason;
 
-        /* set header */
+        /* Extract headers */
         StringBuilder sb = new StringBuilder();
         Map<String, List<String>> headerFields = remoteConnection.getHeaderFields();
         boolean firstEntry = true;
@@ -77,26 +81,24 @@ public class Response extends Packet {
         }
         header = sb.toString();
 
-        /* detect character set */
-        String charset = discoverCharset(remoteConnection.getContentType());
-
-        /* set content */
+        /* Extract content */
         sb = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(remoteConnection.getInputStream(), charset))) {
-            char[] buffer = new char[32768];
-            int read;
-            while ((read = br.read(buffer)) != -1)
-                sb.append(buffer, 0, read);
-        } catch (IOException e) {
-            log.info("Failed reading response content from input stream, reading content from error stream", e);
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(remoteConnection.getErrorStream(), charset))) {
-                char[] buffer = new char[32768];
-                int read;
-                while ((read = br.read(buffer)) != -1)
-                    sb.append(buffer, 0, read);
-            } catch (IOException|NullPointerException e2 ) {
-                log.warn("Failed reading response content from error stream, incomplete or no content in response", e2);
+        try {
+            InputStream contentStream = null;
+            if (responseCode < 400) contentStream = remoteConnection.getInputStream();
+            else contentStream = remoteConnection.getErrorStream();
+            if (contentStream != null) {
+                /* detect character set */
+                String charset = discoverCharset(remoteConnection.getContentType());
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(contentStream, charset))) {
+                    char[] buffer = new char[32768];
+                    int read;
+                    while ((read = br.read(buffer)) != -1)
+                        sb.append(buffer, 0, read);
+                }
             }
+        } catch (Exception e) {
+            log.info("Failed reading response content with responsecode: {}", responseCode, e);
         }
         content = sb.toString();
     }
@@ -131,6 +133,14 @@ public class Response extends Packet {
      */
     public String getReason() {
         return reason;
+    }
+
+    /**
+     * Set reason. Null value is set to "".
+     * @param reason The code.
+     */
+    public void setReason(String reason) {
+        this.reason = reason == null ? "" : reason;
     }
 
     /**

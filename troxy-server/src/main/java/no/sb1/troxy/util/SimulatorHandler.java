@@ -234,7 +234,7 @@ public class SimulatorHandler extends AbstractHandler {
         try {
             int code = Integer.parseInt(response.getCode());
             if (code < 400) servletResponse.setStatus(code);
-            else servletResponse.sendError(code, response.getReason());
+            else servletResponse.setStatus(code, response.getReason());
         } catch (NumberFormatException e) {
             simLog.info("Unable to parse Response code as an Integer, setting Response code to {}", HttpURLConnection.HTTP_BAD_GATEWAY);
             servletResponse.setStatus(HttpURLConnection.HTTP_BAD_GATEWAY);

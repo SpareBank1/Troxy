@@ -1,6 +1,5 @@
 package no.sb1.troxy.util;
 
-import no.sb1.troxy.Troxy;
 import no.sb1.troxy.common.Config;
 import no.sb1.troxy.common.Mode;
 import no.sb1.troxy.http.common.Filter;
@@ -10,6 +9,7 @@ import no.sb1.troxy.record.v3.Recording;
 import no.sb1.troxy.record.v3.RequestPattern;
 import no.sb1.troxy.record.v3.ResponseTemplate;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.ssl.AliasedX509ExtendedKeyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,12 +17,14 @@ import javax.net.ssl.*;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -36,10 +38,14 @@ public class SimulatorHandler extends AbstractHandler {
     private static final Logger log = LoggerFactory.getLogger(SimulatorHandler.class);
     private static final Logger simLog = LoggerFactory.getLogger("simulator");
 
-    private final Troxy troxy;
+    private final ModeHolder modeHolder;
+    private final List<Class<Filter>> filterClasses;
     private final Config config;
     private final TroxyFileHandler troxyFileHandler;
     private final Cache cache;
+
+    private KeyManager[] proxyKeyManagers = null;
+    private boolean proxyForceHttps = false;
 
     /*
      * Set up ignoring certificates and not verifying hostnames.
@@ -60,11 +66,19 @@ public class SimulatorHandler extends AbstractHandler {
         }
     }
 
-    public SimulatorHandler(final Troxy troxy, final Config config, final TroxyFileHandler troxyFileHandler, Cache cache) {
-        this.troxy = troxy;
+
+    public SimulatorHandler(final ModeHolder modeholder,
+                            final List<Class<Filter>> filterClasses,
+                            final Config config,
+                            final TroxyFileHandler troxyFileHandler,
+                            Cache cache) {
+        this.modeHolder = modeholder;
+        this.filterClasses = filterClasses;
         this.config = config;
         this.troxyFileHandler = troxyFileHandler;
         this.cache = cache;
+
+        initProxySettings();
     }
 
     /**
@@ -86,7 +100,7 @@ public class SimulatorHandler extends AbstractHandler {
 
         /* instantiate filters */
         List<Filter> filters = new ArrayList<>();
-        for (Class<Filter> filterClass : troxy.getFilterClasses()) {
+        for (Class<Filter> filterClass : filterClasses) {
             try {
                 filters.add(filterClass.newInstance());
             } catch (InstantiationException e) {
@@ -101,7 +115,7 @@ public class SimulatorHandler extends AbstractHandler {
             filter.doFilterRequest(request, false);
 
         /* find response in cache */
-        Mode mode = troxy.getMode();
+        Mode mode = modeHolder.mode;
         List<Cache.Result> cacheResults = new ArrayList<>();
         if (mode == Mode.PLAYBACK || mode == Mode.PLAYBACK_OR_RECORD || mode == Mode.PLAYBACK_OR_PASSTHROUGH)
             cacheResults = cache.searchCache(request);
@@ -232,9 +246,7 @@ public class SimulatorHandler extends AbstractHandler {
         byte[] contentBytes = response.getContent().getBytes(response.discoverCharset());
         /* status */
         try {
-            int code = Integer.parseInt(response.getCode());
-            if (code < 400) servletResponse.setStatus(code);
-            else servletResponse.sendError(code, response.getReason());
+            servletResponse.setStatus(Integer.parseInt(response.getCode()));
         } catch (NumberFormatException e) {
             simLog.info("Unable to parse Response code as an Integer, setting Response code to {}", HttpURLConnection.HTTP_BAD_GATEWAY);
             servletResponse.setStatus(HttpURLConnection.HTTP_BAD_GATEWAY);
@@ -310,8 +322,8 @@ public class SimulatorHandler extends AbstractHandler {
             port = 80;
         }
         //Override protocol and port if proxyForceHttps is set
-        String protocol = troxy.isProxyForceHttps() ? "https" : request.getProtocol();
-        port = troxy.isProxyForceHttps() ? 443 : port;
+        String protocol = proxyForceHttps ? "https" : request.getProtocol();
+        port = proxyForceHttps ? 443 : port;
         URL url = new URL(protocol, request.getHost(), port, pathAndQuery);
 
         simLog.info("Connecting to host: {}", url);
@@ -319,7 +331,7 @@ public class SimulatorHandler extends AbstractHandler {
         simLog.debug("Request content: {}", request.getContent());
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         //Use client side certificate if provided
-        if (troxy.getProxyKeyManagers() != null && "https".equalsIgnoreCase(url.getProtocol())) {
+        if (proxyKeyManagers != null && "https".equalsIgnoreCase(url.getProtocol())) {
             HttpsURLConnection cons = (HttpsURLConnection) con;
             simLog.info("Using custom SSL truststore: {}, alias: {} when forwarding request",config.getValue("egress.https.keystore.file"),config.getValue("egress.https.keystore.alias.key"));
             cons.setSSLSocketFactory(createClientSSLContext().getSocketFactory());
@@ -361,7 +373,7 @@ public class SimulatorHandler extends AbstractHandler {
         try {
             SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
             //TODO:Verify if works with default trustmanager and securerandom
-            sslContext.init(troxy.getProxyKeyManagers(), (TrustManager[]) Arrays.asList((TrustManager) new NoTrustManager()).toArray(), new java.security.SecureRandom());
+            sslContext.init(proxyKeyManagers, (TrustManager[]) Arrays.asList((TrustManager) new NoTrustManager()).toArray(), new java.security.SecureRandom());
             return sslContext;
         } catch (Exception e) {
             throw new IllegalStateException("Unable to initialize client SSL context", e);
@@ -394,4 +406,43 @@ public class SimulatorHandler extends AbstractHandler {
         public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
         }
     }
+
+
+    private void initProxySettings() {
+        this.proxyForceHttps="true".equalsIgnoreCase(config.getValue("egress.https.force"));
+        this.proxyKeyManagers = initProxyKeyManagers();
+    }
+
+    private KeyManager[] initProxyKeyManagers() {
+        log.info("Loading client side certificates...");
+        KeyManager[] keyManager = null;
+        final String clientKeystoreLocation = config.getValue("egress.https.keystore.file");
+        if (clientKeystoreLocation == null || clientKeystoreLocation.isEmpty()) return null;
+
+        try {
+            KeyStore keyStore = KeyStore.getInstance(config.getValue("egress.https.keystore.type"));
+            FileInputStream fis = new FileInputStream(clientKeystoreLocation);
+
+            keyStore.load(fis, config.getValue("egress.https.keystore.password").toCharArray());
+
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+            keyManagerFactory.init(keyStore, config.getValue("egress.https.keystore.alias.password").toCharArray());
+            keyManager = keyManagerFactory.getKeyManagers();
+
+            String alias = config.getValue("egress.https.keystore.alias.key");
+            if (alias != null && !alias.isEmpty()) {
+                for (int i = 0; i < keyManager.length; i++) {
+                    if (keyManager[i] instanceof X509ExtendedKeyManager) {
+                        keyManager[i] = new AliasedX509ExtendedKeyManager((X509ExtendedKeyManager) keyManager[i], alias);
+                    }
+                }
+            }
+        }
+        catch (Exception e) {
+            log.error("Failed loading client certificates",e);
+            throw new IllegalStateException("Unable to initialize client key manager", e);
+        }
+        return keyManager;
+    }
+
 }

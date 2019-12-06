@@ -35,7 +35,7 @@ public final class Config {
      */
     private static final Pattern INCLUDE_PATTERN = Pattern.compile("^\\s*@include\\s*([^\n]+)\\s*$");
 
-    private final Path path;
+    private Path path;
 
     /**
      * Private constructor to prevent instantiation.
@@ -43,6 +43,10 @@ public final class Config {
     private Config(final Path path) {
         this.path = path;
         reload();
+    }
+
+    public Config(Map<String, String> m) {
+        SETTINGS.putAll(m);
     }
 
     public String getConfigFile() {

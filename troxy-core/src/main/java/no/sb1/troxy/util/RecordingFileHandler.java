@@ -1,15 +1,15 @@
 package no.sb1.troxy.util;
 
+import no.sb1.troxy.record.v2.Recording;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.beans.XMLDecoder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import no.sb1.troxy.Troxy;
-import no.sb1.troxy.record.v2.Recording;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for handling reading, parsing and writing recording files.

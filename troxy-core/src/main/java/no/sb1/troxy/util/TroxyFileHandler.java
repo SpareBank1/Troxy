@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import no.sb1.troxy.Troxy;
 import no.sb1.troxy.http.common.Request;
 import no.sb1.troxy.http.common.Response;
 import no.sb1.troxy.record.v3.Recording;
@@ -348,14 +347,20 @@ public class TroxyFileHandler {
         return true;
     }
 
+
+
+    public Recording loadRecording(String filepath) throws IOException {
+        return loadRecording(recordingDirectory, filepath);
+    }
+
     /**
      * Load a Recording.
      * @param filepath Filename of recording.
      * @return Loaded Recording.
      */
-    public Recording loadRecording(String filepath) throws IOException {
+    public Recording loadRecording(String recordingDirectory2, String filepath) throws IOException {
         log.info("Loading file: {}", filepath);
-        File file = Paths.get(recordingDirectory, filepath).toFile();
+        File file = Paths.get(recordingDirectory2, filepath).toFile();
         if (filepath.endsWith(".xml")) {
             log.info("Attempting to convert file in old format to new format");
             Recording recording = loadOldFormat(filepath);

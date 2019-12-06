@@ -5,6 +5,7 @@ import no.sb1.troxy.record.v3.Recording;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -201,6 +202,27 @@ public class Cache {
             }
         }
     }
+
+    public static void loadRecordingsWithPaths(final Cache root, final TroxyFileHandler troxyFileHandler, final Set<String> paths) {
+        if (root.root != null) {
+            throw new IllegalStateException("Trying to add records to non root cache node");
+        }
+
+        for (String path : paths) {
+            if (path.endsWith(".troxy") || path.endsWith(".xml")) {
+                try {
+                    Recording recording = troxyFileHandler.loadRecording(new File(path).getParent(), new File(path).getName());
+                    if (recording != null)
+                        root.addRecoding(recording);
+                } catch (Exception e) {
+                    log.warn("Error reading file: {}", path, e);
+                }
+            } else if (!troxyFileHandler.isDirectory(path)) {
+                log.info("Skipping file (unknown type): {}", path);
+            }
+        }
+    }
+
 
     /**
      * Add a Recording to the Cache.

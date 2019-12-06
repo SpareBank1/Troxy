@@ -8,6 +8,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>troxy-embedded</artifactId>
+    <name>Troxy Embedded</name>
 
     <dependencies>
         <dependency>

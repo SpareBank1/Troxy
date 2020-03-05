@@ -343,8 +343,16 @@ public class ResponseTemplate extends Response {
                 String variable = entry.getText();
                 int colonIndex = variable.indexOf(':');
                 if (colonIndex > 0) {
-                    /* field specified */
-                    text = getVariable(variables.get(variable.substring(0, colonIndex).toUpperCase()), variable.substring(colonIndex + 1));
+                    if(variable.substring(0, colonIndex).toUpperCase().equals("ENV")){
+                        text = System.getenv(variable.substring(colonIndex + 1));
+                        if(text == null){
+                            log.info("Environment variable \"{}\" is not set. Variable will be replaced by text \"null\"", variable.substring(colonIndex + 1));
+                        }
+                    }
+                    else{
+                        /* field specified */
+                        text = getVariable(variables.get(variable.substring(0, colonIndex).toUpperCase()), variable.substring(colonIndex + 1));
+                    }
                 } else {
                     /* field not specified, have to go through all */
                     for (String key : variables.keySet()) {

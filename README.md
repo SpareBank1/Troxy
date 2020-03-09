@@ -134,6 +134,8 @@ Note that you need to specify where the value was extracted from (in this case c
 
 ![alt text](doc/images/group-capturing-response.png "Group capturing example")
 
+#### Environment variables in mock response
+You can fetch environment variables and insert those in the response to provide a more dynamic mock. Syntax is `$env:MYENVIRONMENTVARIABLE$`
 
 ### Sequence
 Troxy can use the same request for several different responses. There are two strategies used when this mode is enabled for a recording.

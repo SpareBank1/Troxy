@@ -1,0 +1,62 @@
+This is a Troxy recording file.
+You can modify this file in your editor of choice, but there are some rules you must follow:
+* All fields except "COMMENT", "HEADER" and "CONTENT" must stay in one line.
+* Everything after "=" for the fields will be included (text won't be trimmed), this includes whitespace.
+* The "[COMMENT<_END>]", "[HEADER<_END>]" and "[CONTENT<_END>]" markers must be the only text on their lines.
+* If the comment contains "[COMMENT_END]", this must be escaped as "[[COMMENT_END]]".
+* If the header contains "[HEADER_END]", this must be escaped as "[[HEADER_END]]".
+* If the content contains "[CONTENT_END]", this must be escaped as "[[CONTENT_END]]".
+* Any text outside a field will be ignored, and erased if recording is modified in the user interface.
+
+---RECORDING---
+[COMMENT]
+
+[COMMENT_END]
+RESPONSE_STRATEGY=SEQUENTIAL
+
+---REQUEST---
+PROTOCOL=^http$
+HOST=^.*$
+PORT=^.*$
+PATH=^/samepath$
+QUERY=^$
+METHOD=^GET$
+[HEADER]
+SomeHeader: recording1
+[HEADER_END]
+[CONTENT]
+^$
+[CONTENT_END]
+
+---ORIGINAL_REQUEST---
+PROTOCOL=http
+HOST=trow.kube-public
+PORT=8000
+PATH=/fdf
+QUERY=
+METHOD=GET
+[HEADER]
+Accept: */*
+Host: trow.kube-public:8000
+User-Agent: curl/7.54.0
+[HEADER_END]
+[CONTENT]
+
+[CONTENT_END]
+
+---RESPONSE---
+DELAY_STRATEGY=NONE
+DELAY_MIN=0
+DELAY_MEAN=0
+DELAY_MAX=0
+WEIGHT=1
+CODE=200
+[HEADER]
+Server: SimpleHTTP/0.6 Python/2.7.10
+Connection: close
+Date: Thu, 21 Nov 2019 20:32:05 GMT
+Content-Type: text/plain
+[HEADER_END]
+[CONTENT]
+doh
+[CONTENT_END]

@@ -326,6 +326,45 @@ public class Cache {
         return recordings;
     }
 
+    public Map<String, Integer> getRequestCounterPerPath(){
+        Map<String, Integer> totalRequests = new HashMap<>();
+        for (Recording recording : getRecordings()) {
+            String path = getTrimmedPath(recording);
+            int count = totalRequests.getOrDefault(path, 0);
+            totalRequests.put(path, count + recording.getResponseCounterTotal());
+        }
+        return totalRequests;
+    }
+
+    public void resetTotalStatisticCounter(){
+        getRecordings()
+                .forEach(Recording::resetResponseCounterTotal);
+    }
+
+    public Map<String, Integer> getRequestCounterPerRecording() {
+        Map<String, Integer> totalRequests = new HashMap<>();
+        getRecordings()
+                .forEach(recording -> totalRequests.put(
+                        recording.getFilename(),
+                        recording.getResponseCounterTotal()
+                ));
+        return totalRequests;
+    }
+
+    private static String getTrimmedPath(Recording recording) {
+        String path = recording.getRequestPattern().getPath();
+
+        if(path.endsWith("$"))
+        {
+            path = path.substring(0, path.length() - 1);
+        }
+        if(path.startsWith("^"))
+        {
+            path = path.substring(1);
+        }
+        return path;
+    }
+
     /**
      * Helper method for searching the cache for an entry matching the Request.
      * Variables discovered while searching the cache is passed on.

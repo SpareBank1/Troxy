@@ -2,7 +2,6 @@ package no.sb1.troxy.embedded;
 
 import no.sb1.troxy.jetty.TroxyJettyServer;
 import no.sb1.troxy.util.Cache;
-import no.sb1.troxy.util.CacheUtil;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -27,7 +26,7 @@ public class StatisticsTest {
 
         runRequests();
 
-        Map<String, Integer> statisticsPerPath = CacheUtil.getRequestCounterPerPath(cache);
+        Map<String, Integer> statisticsPerPath = cache.getRequestCounterPerPath();
         assertThat(statisticsPerPath.get("/samepath"), equalTo(3));
         assertThat(statisticsPerPath.get("/differentpath"), equalTo(1));
     }
@@ -37,7 +36,7 @@ public class StatisticsTest {
 
         runRequests();
 
-        Map<String, Integer> statisticsPerFile = CacheUtil.getRequestCounterPerRecording(cache);
+        Map<String, Integer> statisticsPerFile = cache.getRequestCounterPerRecording();
         assertThat(statisticsPerFile.get("request_same_path1.troxy"), equalTo(2));
         assertThat(statisticsPerFile.get("request_same_path2.troxy"), equalTo(1));
         assertThat(statisticsPerFile.get("request_different_path.troxy"), equalTo(1));
@@ -48,13 +47,13 @@ public class StatisticsTest {
 
         runRequests();
 
-        CacheUtil.resetTotalStatisticCounter(cache);
+        cache.resetTotalStatisticCounter();
 
-        Map<String, Integer> statisticsPerFile = CacheUtil.getRequestCounterPerRecording(cache);
+        Map<String, Integer> statisticsPerFile = cache.getRequestCounterPerRecording();
         assertThat(statisticsPerFile.get("request_same_path1.troxy"), equalTo(0));
         assertThat(statisticsPerFile.get("request_same_path2.troxy"), equalTo(0));
         assertThat(statisticsPerFile.get("request_different_path.troxy"), equalTo(0));
-        Map<String, Integer> statisticsPerPath = CacheUtil.getRequestCounterPerPath(cache);
+        Map<String, Integer> statisticsPerPath = cache.getRequestCounterPerPath();
         assertThat(statisticsPerPath.get("/samepath"), equalTo(0));
         assertThat(statisticsPerPath.get("/differentpath"), equalTo(0));
     }
@@ -91,6 +90,6 @@ public class StatisticsTest {
 
     @AfterEach
     public void afterEach() {
-        CacheUtil.resetTotalStatisticCounter(cache);
+        cache.resetTotalStatisticCounter();
     }
 }

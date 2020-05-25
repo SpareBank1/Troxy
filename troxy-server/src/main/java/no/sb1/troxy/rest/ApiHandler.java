@@ -319,21 +319,21 @@ public class ApiHandler {
     @Path("statistics/totals/recording")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<String, Integer> getRequestCounterPerRecording() {
-        return CacheUtil.getRequestCounterPerRecording(cache);
+        return cache.getRequestCounterPerRecording();
     }
 
     @GET
     @Path("statistics/totals/path")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<String, Integer> getRequestCounterPerPath() {
-        return CacheUtil.getRequestCounterPerPath(cache);
+        return cache.getRequestCounterPerPath();
     }
 
     @POST
     @Path("statistics/totals/reset")
     @Produces(MediaType.APPLICATION_JSON)
     public void resetTotalStatisticCounter() {
-        CacheUtil.resetTotalStatisticCounter(cache);
+        cache.resetTotalStatisticCounter();
     }
 
     @GET

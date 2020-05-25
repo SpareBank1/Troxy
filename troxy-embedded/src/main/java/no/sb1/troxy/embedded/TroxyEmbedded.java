@@ -3,13 +3,11 @@ package no.sb1.troxy.embedded;
 import no.sb1.troxy.common.Config;
 import no.sb1.troxy.common.Mode;
 import no.sb1.troxy.jetty.TroxyJettyServer;
-import no.sb1.troxy.rest.ApiHandler;
 import no.sb1.troxy.util.*;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.*;
 
 import static java.lang.String.format;
@@ -20,18 +18,15 @@ public class TroxyEmbedded {
     private static final Logger log = LoggerFactory.getLogger(TroxyEmbedded.class);
 
     private static TroxyJettyServer server = null;
-    private static ApiHandler apiHandler = null;
-
+    private static Cache cache = null;
 
     public static TroxyJettyServer runTroxyEmbedded(List<String> recordingFiles, int port)  {
         return runTroxyEmbedded(recordingFiles, port, Mode.PLAYBACK);
     }
 
-
-    public static ApiHandler getApiHandler(){
-        return apiHandler;
+    public static Cache getCache(){
+        return cache;
     }
-
 
     /**
      *
@@ -46,10 +41,9 @@ public class TroxyEmbedded {
         log.info("Troxy starting...");
 
         TroxyFileHandler troxyFileHandler = new TroxyFileHandler(null, null);
-        Cache cache = createCache(recordingFiles, troxyFileHandler);
+        cache = createCache(recordingFiles, troxyFileHandler);
 
         TroxyJettyServer.TroxyJettyServerConfig.TroxyJettyServerConfigBuilder builder = new TroxyJettyServer.TroxyJettyServerConfig.TroxyJettyServerConfigBuilder();
-
         builder.setPort(port);
 
         server = new TroxyJettyServer(builder.createTroxyJettyServerConfig());
@@ -78,10 +72,6 @@ public class TroxyEmbedded {
                 throw new RuntimeException("Server took too long to start up.");
             }
         }
-
-        final StatisticsCollector statisticsCollector = new StatisticsCollector(1, new File("src/test/resources", "statistics").getAbsolutePath(), cache);
-        statisticsCollector.startThread();
-        apiHandler = new ApiHandler(null, new Config(config), statisticsCollector, troxyFileHandler, cache);
 
         log.info(format("Troxy has started up in embedded mode. Startup time: %d ms", System.currentTimeMillis()-t));
 

@@ -318,35 +318,22 @@ public class ApiHandler {
     @GET
     @Path("statistics/totals/recording")
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Integer> getRequestCounterPerRecording() throws IOException {
-        Map<String, Integer> totalRequests = new HashMap<>();
-        cache.getRecordings()
-                .forEach(recording -> totalRequests.put(
-                        recording.getFilename(),
-                        recording.getResponseCounterTotal()
-                ));
-        return totalRequests;
+    public Map<String, Integer> getRequestCounterPerRecording() {
+        return CacheUtil.getRequestCounterPerRecording(cache);
     }
 
     @GET
     @Path("statistics/totals/path")
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Integer> getRequestCounterPerPath() throws IOException {
-        Map<String, Integer> totalRequests = new HashMap<>();
-        for (Recording recording : cache.getRecordings()) {
-            String path = getTrimmedPath(recording);
-            int count = totalRequests.getOrDefault(path, 0);
-            totalRequests.put(path, count + recording.getResponseCounterTotal());
-        }
-        return totalRequests;
+    public Map<String, Integer> getRequestCounterPerPath() {
+        return CacheUtil.getRequestCounterPerPath(cache);
     }
 
     @POST
     @Path("statistics/totals/reset")
     @Produces(MediaType.APPLICATION_JSON)
     public void resetTotalStatisticCounter() {
-        cache.getRecordings()
-          .forEach(Recording::resetResponseCounterTotal);
+        CacheUtil.resetTotalStatisticCounter(cache);
     }
 
     @GET
@@ -430,17 +417,5 @@ public class ApiHandler {
         return -1;
     }
 
-    private String getTrimmedPath(Recording recording) {
-        String path = recording.getRequestPattern().getPath();
 
-        if(path.endsWith("$"))
-        {
-            path = path.substring(0, path.length() - 1);
-        }
-        if(path.startsWith("^"))
-        {
-            path = path.substring(1);
-        }
-        return path;
-    }
 }

@@ -16,10 +16,6 @@
             <artifactId>troxy-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>no.sparebank1.troxy</groupId>
-            <artifactId>troxy-server</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>

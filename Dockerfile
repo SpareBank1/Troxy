@@ -5,6 +5,7 @@ RUN mkdir -p /opt/troxy/bin \
              /opt/troxy/lib  \
              /opt/troxy/conf \
              /opt/troxy/logs  \
+             /opt/troxy/logs/statistics  \
              /opt/troxy/data/filters \
              /opt/troxy/data/recordings  && \
     chmod -R a+w /opt/troxy/data/recordings/ && \

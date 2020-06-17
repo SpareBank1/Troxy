@@ -18,10 +18,14 @@ public class TroxyEmbedded {
     private static final Logger log = LoggerFactory.getLogger(TroxyEmbedded.class);
 
     private static TroxyJettyServer server = null;
-
+    private static Cache cache = null;
 
     public static TroxyJettyServer runTroxyEmbedded(List<String> recordingFiles, int port)  {
         return runTroxyEmbedded(recordingFiles, port, Mode.PLAYBACK);
+    }
+
+    public static Cache getCache(){
+        return cache;
     }
 
     /**
@@ -37,7 +41,7 @@ public class TroxyEmbedded {
         log.info("Troxy starting...");
 
         TroxyFileHandler troxyFileHandler = new TroxyFileHandler(null, null);
-        Cache cache = createCache(recordingFiles, troxyFileHandler);
+        cache = createCache(recordingFiles, troxyFileHandler);
 
         TroxyJettyServer.TroxyJettyServerConfig.TroxyJettyServerConfigBuilder builder = new TroxyJettyServer.TroxyJettyServerConfig.TroxyJettyServerConfigBuilder();
         builder.setPort(port);

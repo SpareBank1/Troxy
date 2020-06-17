@@ -316,6 +316,27 @@ public class ApiHandler {
     }
 
     @GET
+    @Path("statistics/totals/recording")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, Integer> getRequestCounterPerRecording() {
+        return cache.getRequestCounterPerRecording();
+    }
+
+    @GET
+    @Path("statistics/totals/path")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, Integer> getRequestCounterPerPath() {
+        return cache.getRequestCounterPerPath();
+    }
+
+    @POST
+    @Path("statistics/totals/reset")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void resetTotalStatisticCounter() {
+        cache.resetTotalStatisticCounter();
+    }
+
+    @GET
     @Path("statistics/{statisticsfile}")
     @Produces(MediaType.TEXT_PLAIN)
     public String getStatisticsfile(@PathParam("statisticsfile") String statisticsfile) throws IOException {
@@ -395,4 +416,6 @@ public class ApiHandler {
             return System.currentTimeMillis() - startTime;
         return -1;
     }
+
+
 }

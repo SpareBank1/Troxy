@@ -233,6 +233,10 @@ public class Recording {
         return responseCounterTotal.get();
     }
 
+    public void resetResponseCounterTotal() {
+        responseCounterTotal.set(0);
+    }
+
     /**
      * Get the amount of times this Recording has returned a response since the last statistics gathering.
      * @return The amount of times this Recording has returned a response since the last statistics gathering.

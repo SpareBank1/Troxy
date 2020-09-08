@@ -48,7 +48,7 @@ public class TroxyJettyServer {
 
         if (config.securePort > 0) {
             /* setup https connector */
-            SslContextFactory sslContextFactory = new SslContextFactory();
+            SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
             sslContextFactory.setKeyStorePath(config.httpsKeystoreFile);
             sslContextFactory.setKeyStoreType(config.httpsKeystoreType);
             sslContextFactory.setKeyStorePassword(config.httpsKeystorePassword);

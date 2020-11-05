@@ -1,0 +1,99 @@
+This is a Troxy recording file.
+You can modify this file in your editor of choice, but there are some rules you must follow:
+* All fields except "COMMENT", "HEADER" and "CONTENT" must stay in one line.
+* Everything after "=" for the fields will be included (text won't be trimmed), this includes whitespace.
+* The "[COMMENT<_END>]", "[HEADER<_END>]" and "[CONTENT<_END>]" markers must be the only text on their lines.
+* If the comment contains "[COMMENT_END]", this must be escaped as "[[COMMENT_END]]".
+* If the header contains "[HEADER_END]", this must be escaped as "[[HEADER_END]]".
+* If the content contains "[CONTENT_END]", this must be escaped as "[[CONTENT_END]]".
+* Any text outside a field will be ignored, and erased if recording is modified in the user interface.
+
+---RECORDING---
+[COMMENT]
+
+[COMMENT_END]
+RESPONSE_STRATEGY=SEQUENTIAL
+
+---REQUEST---
+PROTOCOL=^https$
+HOST=^.*$
+PORT=^443$
+PATH=^/example$
+QUERY=^$
+METHOD=^POST$
+[HEADER]
+^Accept: .*
+Authorization: .*
+Cache-Control: .*
+Connection: .*
+Content-Length: .*
+Content-Type: .*
+Host: .*
+Pragma: .*
+SOAPAction: "my-soap-action".*
+User-Agent: .*$
+[HEADER_END]
+[CONTENT]
+<>Content</>
+[CONTENT_END]
+
+---ORIGINAL_REQUEST---
+PROTOCOL=https
+HOST=www.example.com
+PORT=443
+PATH=/example$
+QUERY=
+METHOD=POST
+[HEADER]
+Accept: */*
+Authorization: Basic authorization
+Cache-Control: no-cache
+Connection: close
+Content-Length: 1850
+Content-Type: text/xml; charset=UTF-8
+Cookie: delicious-cookie
+Forwarded: forwarded-for
+Host: host
+Pragma: no-cache
+SOAPAction: "my-soap-action"
+User-Agent: User-Agent iOS
+X-CACHE-BALANCE-HEADER: cache-balance-header
+X-Forwarded-For: 12.123.123.12
+X-Forwarded-Host: forwarded-host
+X-Forwarded-Port: 443
+X-Forwarded-Proto: https
+[HEADER_END]
+[CONTENT]
+<>Content</>
+[CONTENT_END]
+
+---RESPONSE---
+DELAY_STRATEGY=NONE
+DELAY_MIN=0
+DELAY_MEAN=0
+DELAY_MAX=0
+WEIGHT=1
+CODE=200
+[HEADER]
+X-Forwarded-Proto: https
+Connection: close
+Content-Length: 13943
+Date: Mon, 1 Jan 1970 00:00:00 GMT
+Content-Type: text/xml;charset=utf-8
+[HEADER_END]
+[CONTENT]
+<>Content</>
+[CONTENT_END]
+
+---ORIGINAL_RESPONSE---
+CODE=200
+[HEADER]
+X-Forwarded-Proto: https
+Connection: close
+Content-Length: 13943
+Date: Mon, 26 Oct 2020 12:58:54 GMT
+Content-Type: text/xml;charset=utf-8
+[HEADER_END]
+[CONTENT]
+<>Content</>
+[CONTENT_END]

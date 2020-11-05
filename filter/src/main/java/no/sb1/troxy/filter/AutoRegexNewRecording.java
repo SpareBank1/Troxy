@@ -1,11 +1,11 @@
 package no.sb1.troxy.filter;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
+
 import no.sb1.troxy.http.common.Filter;
 import no.sb1.troxy.record.v3.Recording;
 import no.sb1.troxy.record.v3.RequestPattern;
@@ -27,18 +27,46 @@ public class AutoRegexNewRecording extends Filter {
      */
     private static final Pattern UNESCAPE_BACKSLASH_PATTERN = Pattern.compile("\\\\(.)");
 
-    private static Map<Pattern, String> protocolPatterns = new HashMap<>();
-    private static Map<Pattern, String> hostPatterns = new HashMap<>();
-    private static Map<Pattern, String> portPatterns = new HashMap<>();
-    private static Map<Pattern, String> pathPatterns = new HashMap<>();
-    private static Map<Pattern, String> queryPatterns = new HashMap<>();
-    private static Map<Pattern, String> methodPatterns = new HashMap<>();
-    private static Map<Pattern, String> headerPatterns = new HashMap<>();
-    private static Map<Pattern, String> contentPatterns = new HashMap<>();
+    protected static class PatternWithReplacement {
+        private final String configKey;
+        private Pattern pattern;
+        private String replacement;
 
-    private static Map<Pattern, String> responseCodePatterns = new HashMap<>();
-    private static Map<Pattern, String> responseHeaderPatterns = new HashMap<>();
-    private static Map<Pattern, String> responseContentPatterns = new HashMap<>();
+        public PatternWithReplacement(String configKey, Pattern pattern, String replacement) {
+            this.configKey = configKey;
+            this.pattern = pattern;
+            this.replacement = replacement;
+        }
+
+        public Pattern getPattern() {
+            return pattern;
+        }
+
+        public void setPattern(Pattern pattern) {
+            this.pattern = pattern;
+        }
+
+        public String getReplacement() {
+            return replacement;
+        }
+
+        public void setReplacement(String replacement) {
+            this.replacement = replacement;
+        }
+    }
+
+    private static final Map<Pattern, String> protocolPatterns = new HashMap<>();
+    private static final Map<Pattern, String> hostPatterns = new HashMap<>();
+    private static final Map<Pattern, String> portPatterns = new HashMap<>();
+    private static final Map<Pattern, String> pathPatterns = new HashMap<>();
+    private static final Map<Pattern, String> queryPatterns = new HashMap<>();
+    private static final Map<Pattern, String> methodPatterns = new HashMap<>();
+    protected static final List<PatternWithReplacement> headerPatterns = new ArrayList<>();
+    private static final Map<Pattern, String> contentPatterns = new HashMap<>();
+
+    private static final Map<Pattern, String> responseCodePatterns = new HashMap<>();
+    private static final Map<Pattern, String> responseHeaderPatterns = new HashMap<>();
+    private static final Map<Pattern, String> responseContentPatterns = new HashMap<>();
 
     @Override
     protected void loadConfig(Map<String, Map<String, String>> configuration) {
@@ -68,7 +96,10 @@ public class AutoRegexNewRecording extends Filter {
                 Pattern pattern = Pattern.compile(value.replace(";;", ";"));
                 String key = entry.getKey();
                 int dotPos = key.indexOf('.');
-                switch (key.substring(0, dotPos > 0 ? dotPos : key.length())) {
+                final String type = key.substring(0, dotPos > 0 ? dotPos : key.length());
+                final String name = key.substring(dotPos + 1);
+                final PatternWithReplacement patternWithReplacement = new PatternWithReplacement(name, pattern, replacement);
+                switch (type) {
                     case "protocol":
                         protocolPatterns.put(pattern, replacement);
                         break;
@@ -94,7 +125,7 @@ public class AutoRegexNewRecording extends Filter {
                         break;
 
                     case "header":
-                        headerPatterns.put(pattern, replacement);
+                        headerPatterns.add(patternWithReplacement);
                         break;
 
                     case "content":
@@ -121,6 +152,7 @@ public class AutoRegexNewRecording extends Filter {
                 log.warn("Unable to parse regex '{}' for key '{}'", entry.getValue(), entry.getKey(), e);
             }
         }
+        headerPatterns.sort(Comparator.comparing((PatternWithReplacement o) -> o.configKey));
     }
 
     @Override
@@ -131,7 +163,7 @@ public class AutoRegexNewRecording extends Filter {
         requestPattern.setPort(getReplacedField(requestPattern.getPort(), portPatterns, true));
         requestPattern.setPath(getReplacedField(requestPattern.getPath(), pathPatterns, true));
         requestPattern.setQuery(getReplacedField(requestPattern.getQuery(), queryPatterns, true));
-        requestPattern.setHeader(getReplacedField(requestPattern.getHeader(), headerPatterns, true));
+        requestPattern.setHeader(getReplacedFieldLineByLine(requestPattern.getHeader(), headerPatterns));
         requestPattern.setMethod(getReplacedField(requestPattern.getMethod(), methodPatterns, true));
         requestPattern.setContent(getReplacedField(requestPattern.getContent(), contentPatterns, true));
 
@@ -139,6 +171,62 @@ public class AutoRegexNewRecording extends Filter {
         responseTemplate.setCode(getReplacedField(responseTemplate.getCode(), responseCodePatterns, false));
         responseTemplate.setHeader(getReplacedField(responseTemplate.getHeader(), responseHeaderPatterns, false));
         responseTemplate.setContent(getReplacedField(responseTemplate.getContent(), responseContentPatterns, false));
+    }
+
+    private String getReplacedFieldLineByLine(String input, List<PatternWithReplacement> patterns) {
+        // do nothing if no pattern
+        if (patterns.isEmpty()) {
+            return input;
+        }
+
+        // unescape input and chop off leading "^" and trailing "$"
+        String text = unescape(input.substring(1, input.length() - 1));
+        if (text == null) {
+            log.warn("Unable to unescape input '{}', can't search & replace text with regular expressions", input);
+            return input;
+        }
+
+        Set<Integer> linesToNotEscape = new HashSet<>();
+        String[] lines = text.split("\n");
+        // Loop over each RegEx specified in config, and check for matches line by line
+        for (PatternWithReplacement pattern : patterns) {
+            for (int currentLine = 0; currentLine < lines.length; currentLine++) {
+                String line = lines[currentLine];
+                // Since this loop is replacing inline, the input to 'matcher' will be different for the same value of currentLine
+                // if the line at index currentLine has already been replaced by a RegEx in an earlier loop iteration
+                // We do this to make the replacement work in a top-down fashion, making the final output easier to comprehend
+                Matcher matcher = pattern.getPattern().matcher(line);
+                if (matcher.find()) {
+                    String replacement = pattern.getReplacement();
+                    if (replacement == null) {
+                        final String patternAsString = matcher.pattern().pattern();
+                        lines[currentLine] = line.replaceAll(patternAsString, RequestPattern.escape(patternAsString));
+                    } else {
+                        lines[currentLine] = line.replaceAll(pattern.getPattern().pattern(), replacement);
+                    }
+                    linesToNotEscape.add(currentLine);
+                }
+            }
+        }
+        // Lines that have been replaced should not be escaped, as they may have RegEx symbols that we want to preserve as-is
+        escapeUntouchedLines(lines, linesToNotEscape);
+        // If a line has been removed altogether by a RegEx, we want to remove these lines before joining
+        text = Arrays.stream(lines).filter(string -> !string.isEmpty()).collect(Collectors.joining("\n"));
+        // add back "^" and "$" unless it was already added by the pattern
+        if (!text.startsWith("^"))
+            text = "^" + text;
+        if (!text.endsWith("$"))
+            text += "$";
+        return text;
+    }
+
+    private void escapeUntouchedLines(String[] lines, Set<Integer> lineNumbersToNotEscape) {
+        for (int currentLine = 0, linesLength = lines.length; currentLine < linesLength; currentLine++) {
+            String line = lines[currentLine];
+            if (!lineNumbersToNotEscape.contains(currentLine)) {
+                lines[currentLine] = RequestPattern.escape(line);
+            }
+        }
     }
 
     private String getReplacedField(String input, Map<Pattern, String> patterns, boolean escapeText) {
@@ -168,7 +256,7 @@ public class AutoRegexNewRecording extends Filter {
                 Matcher matcher = extendedMatcher.getValue().matcher;
                 String replacement = extendedMatcher.getValue().replacement;
                 if (lastEnd < matcher.start())
-                    output += escapeText ? RequestPattern.escape(text.substring(lastEnd, matcher.start())): text.substring(lastEnd, matcher.start());
+                    output += escapeText ? RequestPattern.escape(text.substring(lastEnd, matcher.start())) : text.substring(lastEnd, matcher.start());
                 if (replacement == null) {
                     output += matcher.pattern().pattern();
                     if (!escapeText)
@@ -201,6 +289,7 @@ public class AutoRegexNewRecording extends Filter {
 
     /**
      * Unescape characters that have been escaped to prevent them from being mistaken as a regular expression.
+     *
      * @param text The text to be unescaped.
      * @return An unescaped version of the given text.
      */

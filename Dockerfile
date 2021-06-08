@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk8:jdk8u292-b10
+FROM adoptopenjdk/openjdk11:jdk11u-2021-05-07-07-34
 MAINTAINER Stian Conradsen "stian.conradsen@sparebank1.no"
 
 RUN mkdir -p /opt/troxy/bin \

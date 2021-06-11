@@ -67,7 +67,7 @@
     <java.version>11</java.version>
     <!-- Dependency versions -->
     <jersey.version>3.0.0</jersey.version>
-    <jetty.version>11.0.1</jetty.version>
+    <jetty.version>11.0.3</jetty.version>
     <log4j.version>2.11.0</log4j.version>
     <servlet.version>5.0.0</servlet.version>
     <slf4j.version>1.7.28</slf4j.version>

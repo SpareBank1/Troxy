@@ -4,6 +4,7 @@ jdk:
 - openjdk11
 jobs:
   include:
+    before_install: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     install: ./mvnw -q de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -Prelease
     script:
       - bash ./build.sh || travis_terminate 1;

@@ -35,6 +35,6 @@ mvnDeploy() {
 
 mvnDeploy || die 'Maven deploy failure'
 
-hasDockerCreds || die 'Missing docker credentials'
-dockerLogin || die 'Docker login failure'
-dockerPush || die 'Docker push failure'
+#hasDockerCreds || die 'Missing docker credentials'
+#dockerLogin || die 'Docker login failure'
+#dockerPush || die 'Docker push failure'

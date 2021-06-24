@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/SpareBank1/Troxy.svg?branch=master)](https://travis-ci.org/SpareBank1/Troxy)
+[![Build Status](https://travis-ci.com/SpareBank1/Troxy.svg?branch=master)](https://travis-ci.com/SpareBank1/Troxy)
 [![Maven Central](https://img.shields.io/maven-central/v/no.sparebank1.troxy/troxy-server.svg)](https://search.maven.org/artifact/no.sparebank1.troxy/troxy-server)
 [![Docker Pulls](https://img.shields.io/docker/pulls/sparebank1/troxy)](https://hub.docker.com/r/sparebank1/troxy)
 # Troxy

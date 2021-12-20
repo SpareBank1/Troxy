@@ -7,6 +7,5 @@ dockerBuild() {
 }
 
 
-./mvnw -B clean install
+mvn clean install
 dockerBuild
-

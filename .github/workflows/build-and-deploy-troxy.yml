@@ -1,0 +1,38 @@
+name: Build and deploy Troxy
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build Maven artifact and Docker image
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Set up JDK 8
+      uses: actions/setup-java@v2
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+        cache: maven
+
+    - name: Build Troxy artifacts and Docker image
+      run: ./build.sh
+
+    - id: install-secret-key
+      name: Install gpg secret key
+      run: cat <(echo -e "${{ secrets.OSSRH_GPG_SECRET_KEY }}") | gpg --batch --import
+
+    - name: Deploy Troxy to Central and Hub
+      if: github.ref == 'refs/heads/master'
+      run: ./deploy.sh
+      env:
+        GITHUB_TOKEN: ${{ secrets.TROXY_TOKEN }}
+        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        OSSRH_GPG_SECRET_KEY_PASSWORD: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}

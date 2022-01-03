@@ -8,6 +8,7 @@
   <packaging>pom</packaging>
   <name>Troxy</name>
   <description>
+	  Testendring
     Troxy is a proxy intended for simulating a remote service without actually
     connecting to the server. Incoming requests are matched using regular
     expressions and responses are created from a recorded response from the remote

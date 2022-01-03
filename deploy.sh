@@ -3,7 +3,7 @@
 source "./build-configuration.sh"
 
 hasDockerCreds() {
-    local -r docker_creds="${DOCKER_USERNAME}${DOCKER_PASSWORD}"
+    local -r docker_creds="$DOCKER_USERNAME$DOCKER_PASSWORD"
 
     if [ "$docker_creds" = '' ]; then
         return 1
@@ -15,7 +15,9 @@ dockerLogin() {
 }
 
 dockerPush() {
+    docker tag "$TROXY_DOCKER_IMAGE:$DOCKER_REVISION" "$TROXY_DOCKER_IMAGE:latest"
     docker push "$TROXY_DOCKER_IMAGE:$DOCKER_REVISION"
+    docker push "$TROXY_DOCKER_IMAGE:latest"
 }
 
 die() {
@@ -24,13 +26,13 @@ die() {
 }
 
 mvnDeploy() {
-    ./mvnw deploy \
+    mvn deploy \
         -Prelease \
         -s ./settings.xml \
         -Drevision="$MAVEN_REVISION" \
         -Dsonatype.username="$SONATYPE_USERNAME" \
         -Dsonatype.password="$SONATYPE_PASSWORD" \
-        -Dgpg.passphrase="$GPG_PASSPHRASE"
+        -Dgpg.passphrase="$OSSRH_GPG_SECRET_KEY_PASSWORD"
 }
 
 mvnDeploy || die 'Maven deploy failure'

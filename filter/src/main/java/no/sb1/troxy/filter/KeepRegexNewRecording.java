@@ -135,7 +135,7 @@ public class KeepRegexNewRecording extends Filter {
         }
 
         // add back "^" and "$"
-        output = "^.*?" + output;
+        output = "^.*" + output;
         if (!output.endsWith("$"))
             output += "$";
         return output;

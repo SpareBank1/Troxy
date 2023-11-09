@@ -7,5 +7,6 @@ dockerBuild() {
 }
 
 
-mvn clean install
-dockerBuild
+mvn -B clean install
+#dockerBuild
+

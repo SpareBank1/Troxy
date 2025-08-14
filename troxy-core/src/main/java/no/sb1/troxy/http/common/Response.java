@@ -6,7 +6,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
-import javax.xml.bind.annotation.XmlTransient;
+
+import jakarta.xml.bind.annotation.XmlTransient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

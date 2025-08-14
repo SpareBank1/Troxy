@@ -1,5 +1,6 @@
 package no.sb1.troxy.record.v3;
 
+import jakarta.xml.bind.annotation.XmlTransient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * This is a container class for a recording.
